@@ -10,8 +10,8 @@ class Othello:
         self.__Board.displayBoard()
         print("Black is 1 and White is 2")
         while True:
-            if checkgameover():
-                calculateWinner()
+            if self.checkgameover():
+                self.calculateWinner()
             if self.__Turn % 2 == 1:
                 print(f"Black's ({self.__Player1.getName()}) turn")
 
@@ -29,6 +29,9 @@ class Othello:
 
                 self.__Board.setBoard(column, row, BoardPiece(self.__Player2.getPieceColour()))
 
+            self.__Turn += 1
+            self.__Board.displayBoard()
+
 
     def setupGame(self, colour1, colour2):
         # sets the board up with starting pieces
@@ -41,8 +44,17 @@ class Othello:
     def checkgameover(self):
         if self.__Board.isFull():
             return True
+        return False
+
+    def calculateWinner(self):
+        if self.__Board.getBlackScore() > self.__Board.getWhiteScore():
+            print(f"{self.__Player1.getName()} wins!")
+        elif self.__Board.getBlackScore() < self.__Board.getWhiteScore():
+            print(f"{self.__Player2.getName()} wins!")
         else:
-            return False
+            print("It's a tie!")
+
+
         
 class Board:
     def __init__(self):
