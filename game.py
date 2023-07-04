@@ -4,6 +4,7 @@ class Othello:
         self.__Player1 = player1
         self.__Player2 = player2
         self.__Turn = 1
+        self.__movedirections = [[-1,1], [0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0]]
 
     def playGame(self):
         self.setupGame(1, 2)
@@ -14,20 +15,28 @@ class Othello:
                 self.calculateWinner()
             if self.__Turn % 2 == 1:
                 print(f"Black's ({self.__Player1.getName()}) turn")
-
+                validmove = False
                 # get the players move
-                column = int(input("Enter a column: ")) - 1
-                row = int(input("Enter a row:")) - 1
-
-                self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
+                while not validmove:
+                    column = int(input("Enter a column: ")) - 1
+                    row = int(input("Enter a row: ")) - 1
+                    if self.isvalidmove(1, column, row):
+                        self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
+                        validmove = True
+                    else:
+                        print("Invalid move, try again")
             else:
                 print(f"White's ({self.__Player2.getName()}) turn")
 
                 # get the players move
-                column = int(input("Enter a column: ")) - 1
-                row = int(input("Enter a row:")) - 1
-
-                self.__Board.setBoard(column, row, BoardPiece(self.__Player2.getPieceColour()))
+                while not validmove:
+                    column = int(input("Enter a column: ")) - 1
+                    row = int(input("Enter a row: ")) - 1
+                    if self.isvalidmove(2, column, row):
+                        self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
+                        validmove = True
+                    else:
+                        print("Invalid move, try again")
 
             self.__Turn += 1
             self.__Board.displayBoard()
@@ -41,12 +50,41 @@ class Othello:
         self.__Player1.setPieceColour(colour1)
         self.__Player2.setPieceColour(colour2)
 
+    def willflip(self, colour, move, dir):
+        i = 1
+        while True:
+            nextcol = move[1] + dir[1] * i
+            nextrow = move[0] + dir[0] * i
+            if self.coordvalid(nextcol, nextrow):
+                # if the next piece is the same colour, break
+                if self.__Board.getBoardPiece(nextcol, nextrow) == colour:
+                    break
+                # if the next piece is empty, return false
+                elif self.__Board.getBoardPiece(nextcol, nextrow) == 0:
+                    return False
+                # if the next piece is the opposite colour, continue
+                else:
+                    i += 1
+        return i > 1
+    
+    def isvalidmove(self, colour, col, row):
+
+        for mov in self.__movedirections:
+            if self.willflip(colour, [row, col], mov):
+                return True
+        return False
+
+    def coordvalid(self, col, row):
+        if col > 0 and col < 8 and row > 0 and row < 8:
+            return True
+        return False              
+
     def checkgameover(self):
         if self.__Board.isFull():
             return True
         return False
 
-    def calculateWinner(self):
+    def calculateWinner(self):                 
         if self.__Board.getBlackScore() > self.__Board.getWhiteScore():
             print(f"{self.__Player1.getName()} wins!")
         elif self.__Board.getBlackScore() < self.__Board.getWhiteScore():
@@ -81,9 +119,9 @@ class Board:
         for i in range(8):
             for j in range(8):
                 if i == j == 3 or i == 4 == j:
-                    self.__Board[i][j] = BoardPiece(2)
-                elif i == 3 and j == 4 or i == 4 and j == 3:
                     self.__Board[i][j] = BoardPiece(1)
+                elif i == 3 and j == 4 or i == 4 and j == 3:
+                    self.__Board[i][j] = BoardPiece(2)
     
     def isFull(self):
         for i in range(8):
