@@ -1,5 +1,34 @@
+from board import Board
+from boardpiece import BoardPiece
+from player import Player
+
 class Othello:
+    '''
+        Class: Othello
+        Attributes:
+            Board: a class Board that represents the board
+            Player1: a class Player that represents player 1
+            Player2: a class Player that represents player 2
+            Turn: an integer that represents the turn
+            movedirections: a list of lists that represents all the directions from a piece
+
+        Methods:
+            playGame
+            setupGame
+            willflip
+            isvalidmove
+            getvalidmoves
+            coordvalid
+            checkgameover
+            calculateWinner
+    '''
+
     def __init__(self, player1, player2):
+        '''
+            Initialises all the attributes of othello
+            takes the two players as parameters
+        '''
+
         self.__Board = Board()
         self.__Player1 = player1
         self.__Player2 = player2
@@ -7,6 +36,14 @@ class Othello:
         self.__movedirections = [[-1,1], [0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0]]
 
     def playGame(self):
+        '''
+            Method: playGame
+            Parameters: None
+            Returns: None
+
+            Does: Sets up the game and plays the game until the game is over
+        '''
+
         self.setupGame(1, 2)
         self.__Board.displayBoard()
         print("Black is 1 and White is 2")
@@ -47,6 +84,14 @@ class Othello:
 
 
     def setupGame(self, colour1, colour2):
+        '''
+            Method: setupGame
+            Parameters: colour1, colour2
+            Returns: None
+            
+            Does: Sets up the game with the starting pieces and sets the players piece colour
+        '''
+
         # sets the board up with starting pieces
         self.__Board.fillBoard()
 
@@ -55,6 +100,14 @@ class Othello:
         self.__Player2.setPieceColour(colour2)
 
     def willflip(self, colour, move, dir):
+        '''
+            Method: willflip
+            Parameters: colour, move, dir
+            Returns: True or False
+            
+            Does: Checks if the move will flip any pieces
+        '''    
+
         i = 1
         while True:
             nextcol = move[1] + dir[1] * i
@@ -72,12 +125,27 @@ class Othello:
         return i > 1
     
     def isvalidmove(self, colour, col, row):
+        '''
+            Method: isvalidmove
+            Parameters: colour, col, row
+            Returns: True or False
+            
+            Does: Checks if the move is valid
+        ''' 
+
         for mov in self.__movedirections:
             if self.willflip(colour, [row, col], mov):
                 return True
         return False
 
     def getvalidmoves(self,colour):
+        '''
+            Method: getvalidmoves
+            Parameters: colour
+            Returns: moves
+            
+            Does: Gets all the valid moves for a player
+        '''
         moves = []
         for i in range(8):
             for j in range(8):
@@ -86,107 +154,46 @@ class Othello:
         return moves
     
     def coordvalid(self, col, row):
+        '''
+            Method: coordvalid
+            Parameters: col, row
+            Returns: True or False
+            
+            Does: Checks if the coordinates are valid (between 0 and 7)
+        '''
+        
         if col > 0 and col < 8 and row > 0 and row < 8:
             return True
         return False              
 
     def checkgameover(self):
+        '''
+            Method: checkgameover
+            Parameters: None
+            Returns: True or False
+            
+            Does: Checks if the game is over
+        '''
+
         if self.__Board.isFull() and len(self.getvalidmoves(1)) == 0 and len(self.getvalidmoves(2)) == 0:
             return True
         return False
 
-    def calculateWinner(self):                 
+    def calculateWinner(self): 
+        '''
+            Method: calculateWinner
+            Parameters: None
+            Returns: None
+        '''
+
         if self.__Board.getBlackScore() > self.__Board.getWhiteScore():
             print(f"{self.__Player1.getName()} wins!")
         elif self.__Board.getBlackScore() < self.__Board.getWhiteScore():
             print(f"{self.__Player2.getName()} wins!")
         else:
             print("It's a tie!")
-
-class Board:
-    def __init__(self):
-        self.__Board = [[None for x in range(8)] for y in range(8)]
-    
-    def getBoard(self):
-        return self.__Board
-    
-    def displayBoard(self):
-        print("  1 2 3 4 5 6 7 8")
-        for i in range(8):
-            print(i+1, end = " ")
-            for j in range(8):
-                if self.__Board[i][j]:
-                    print(self.__Board[i][j].getValue(), end = " ")
-                else:
-                    print("0", end = " ")
-            print()
-
-    def setBoard(self, col, row, value):
-        self.__Board[row][col] = value
-
-    def fillBoard(self):
-        for i in range(8):
-            for j in range(8):
-                if i == j == 3 or i == 4 == j:
-                    self.__Board[i][j] = BoardPiece(1)
-                elif i == 3 and j == 4 or i == 4 and j == 3:
-                    self.__Board[i][j] = BoardPiece(2)
-    
-    def isFull(self):
-        for i in range(8):
-            for j in range(8):
-                if not self.__Board[i][j]:
-                    return False
-        return True
-
-    def getBoardPiece(self, col, row):
-        if self.__Board[row][col]:
-            return self.__Board[row][col].getValue()
-        else:
-            return 0
-
-    def getWhiteScore(self):
-        count = 0
-        for i in range(8):
-            for j in range(8):
-                if self.__Board[i][j] == 2:
-                    count += 1
-
-        return count
-
-    def getBlackScore(self):
-        count = 0
-        for i in range(8):
-            for j in range(8):
-                if self.__Board[i][j] == 1:
-                    count += 1
-
-        return count
         
-class BoardPiece:
-    def __init__(self, value):
-        self.__Value = value #black is 1 and white is 2
-    
-    
-    def getValue(self):
-        return self.__Value
-    
-    def setValue(self, value):
-        self.__Value = value
 
-class Player:
-    def __init__(self, name):
-        self.__Name = name
-        self.__pieceColour = None
-
-    def getName(self):
-        return self.__Name
-
-    def getPieceColour(self):
-        return self.__pieceColour
-    
-    def setPieceColour(self, colour):
-        self.__pieceColour = colour
 
 if __name__ == "__main__":
     
