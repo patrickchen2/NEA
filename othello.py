@@ -48,7 +48,7 @@ class Othello:
         self.__Board.displayBoard()
         print("Black is 1 and White is 2")
         while True:
-            if self.checkgameover():
+            if self.checkGameOver():
                 self.calculateWinner()
             if self.__Turn % 2 == 1:
                 print(f"Black's ({self.__Player1.getName()}) turn")
@@ -59,7 +59,7 @@ class Othello:
                     row = int(input("Enter a row: ")) - 1
 
                     # check if the move is valid
-                    if self.isvalidmove(1, column, row) and not self.__Board.isFull():
+                    if self.isValidMove(1, column, row) and not self.__Board.isFull():
                         self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
                         validmove = True
                     else:
@@ -73,7 +73,7 @@ class Othello:
                     row = int(input("Enter a row: ")) - 1
 
                     # check if the move is valid
-                    if self.isvalidmove(2, column, row) and not self.__Board.isFull(): # also check if the board doesn't have any moves
+                    if self.isValidMove(2, column, row) and not self.__Board.isFull(): # also check if the board doesn't have any moves
                         self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
                         validmove = True
                     else:
@@ -99,7 +99,7 @@ class Othello:
         self.__Player1.setPieceColour(colour1)
         self.__Player2.setPieceColour(colour2)
 
-    def willflip(self, colour, move, dir):
+    def willFlip(self, colour, move, dir):
         '''
             Method: willflip
             Parameters: colour, move, dir
@@ -124,7 +124,7 @@ class Othello:
                     i += 1
         return i > 1
     
-    def isvalidmove(self, colour, col, row):
+    def isValidMove(self, colour, col, row):
         '''
             Method: isvalidmove
             Parameters: colour, col, row
@@ -134,11 +134,11 @@ class Othello:
         ''' 
 
         for mov in self.__movedirections:
-            if self.willflip(colour, [row, col], mov):
+            if self.willFlip(colour, [row, col], mov):
                 return True
         return False
 
-    def getvalidmoves(self,colour):
+    def getValidMoves(self,colour):
         '''
             Method: getvalidmoves
             Parameters: colour
@@ -149,11 +149,11 @@ class Othello:
         moves = []
         for i in range(8):
             for j in range(8):
-                if self.isvalidmove(colour, i, j):
+                if self.isValidMove(colour, i, j):
                     moves.append([i,j])
         return moves
     
-    def coordvalid(self, col, row):
+    def coordValid(self, col, row):
         '''
             Method: coordvalid
             Parameters: col, row
@@ -166,7 +166,7 @@ class Othello:
             return True
         return False              
 
-    def checkgameover(self):
+    def checkGameOver(self):
         '''
             Method: checkgameover
             Parameters: None
@@ -175,7 +175,7 @@ class Othello:
             Does: Checks if the game is over
         '''
 
-        if self.__Board.isFull() and len(self.getvalidmoves(1)) == 0 and len(self.getvalidmoves(2)) == 0:
+        if self.__Board.isFull() and len(self.getValidMoves(1)) == 0 and len(self.getValidMoves(2)) == 0:
             return True
         return False
 
