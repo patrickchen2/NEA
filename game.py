@@ -20,7 +20,9 @@ class Othello:
                 while not validmove:
                     column = int(input("Enter a column: ")) - 1
                     row = int(input("Enter a row: ")) - 1
-                    if self.isvalidmove(1, column, row):
+
+                    # check if the move is valid
+                    if self.isvalidmove(1, column, row) and not self.__Board.isFull():
                         self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
                         validmove = True
                     else:
@@ -32,7 +34,9 @@ class Othello:
                 while not validmove:
                     column = int(input("Enter a column: ")) - 1
                     row = int(input("Enter a row: ")) - 1
-                    if self.isvalidmove(2, column, row):
+
+                    # check if the move is valid
+                    if self.isvalidmove(2, column, row) and not self.__Board.isFull(): # also check if the board doesn't have any moves
                         self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
                         validmove = True
                     else:
@@ -68,19 +72,26 @@ class Othello:
         return i > 1
     
     def isvalidmove(self, colour, col, row):
-
         for mov in self.__movedirections:
             if self.willflip(colour, [row, col], mov):
                 return True
         return False
 
+    def getvalidmoves(self,colour):
+        moves = []
+        for i in range(8):
+            for j in range(8):
+                if self.isvalidmove(colour, i, j):
+                    moves.append([i,j])
+        return moves
+    
     def coordvalid(self, col, row):
         if col > 0 and col < 8 and row > 0 and row < 8:
             return True
         return False              
 
     def checkgameover(self):
-        if self.__Board.isFull():
+        if self.__Board.isFull() and len(self.getvalidmoves(1)) == 0 and len(self.getvalidmoves(2)) == 0:
             return True
         return False
 
@@ -92,8 +103,6 @@ class Othello:
         else:
             print("It's a tie!")
 
-
-        
 class Board:
     def __init__(self):
         self.__Board = [[None for x in range(8)] for y in range(8)]
@@ -153,6 +162,7 @@ class Board:
                     count += 1
 
         return count
+        
 class BoardPiece:
     def __init__(self, value):
         self.__Value = value #black is 1 and white is 2
