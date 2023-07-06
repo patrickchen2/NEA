@@ -1,6 +1,7 @@
 from board import Board
 from boardpiece import BoardPiece
 from player import Player
+import time
 
 class Othello:
     '''
@@ -23,7 +24,7 @@ class Othello:
             calculateWinner
     '''
 
-    def __init__(self, player1, player2):
+    def __init__(self, player1, player2, timer, turn):
         '''
             Initialises all the attributes of othello
             takes the two players as parameters
@@ -32,8 +33,10 @@ class Othello:
         self.__Board = Board()
         self.__Player1 = player1
         self.__Player2 = player2
-        self.__Turn = 1
+        self.__Turn = turn
         self.__movedirections = [[-1,1], [0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0]]
+        self.__p1time = timer
+        self.__p2time = timer
 
     def playGame(self):
         '''
@@ -47,27 +50,69 @@ class Othello:
         self.setupGame(1, 2)
         self.__Board.displayBoard()
         print("Black is 1 and White is 2")
+        quit = False
         while True:
             if self.checkGameOver():
                 self.calculateWinner()
+                break
+            if quit == True:
+                break
+            
             if self.__Turn % 2 == 1:
                 print(f"Black's ({self.__Player1.getName()}) turn")
-                validmove = False
-                # get the players move
-                while not validmove:
-                    column = int(input("Enter a column: ")) - 1
-                    row = int(input("Enter a row: ")) - 1
 
-                    # check if the move is valid
-                    if self.isValidMove(1, column, row) and not self.__Board.isFull():
-                        self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
-                        validmove = True
-                    else:
-                        print("Invalid move, try again")
+                # if there are no valid moves, then skip their turn
+                if len(self.getValidMoves(1)) == 0:
+                    print("No valid moves, skipping turn")
+                    self.__Turn += 1
+                    continue
+                
+                #display the menu
+                self.displayMenu()
+                choice = int(input("Enter your choice (1,2,3,4): "))
+                if choice == 1:
+                    #display how much time they have left
+                    print(f"you have {self.__p1time} seconds left")
+                    currtime = time.time()
+        
+                    # get the players move
+                    validmove = False
+                    while not validmove:
+                        column = int(input("Enter a column: ")) - 1
+                        row = int(input("Enter a row: ")) - 1
+
+                        # check if the move is valid
+                        if self.isValidMove(1, column, row) and not self.__Board.isFull():
+                            self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
+                            validmove = True
+                        else:
+                            print("Invalid move, try again")
+                    self.__p1time -= time.time() - currtime
+                elif choice == 2:
+                    print("This will override the current game, would you like to continue? (y/n)")
+                    inp = input()
+                    if inp == "y":
+                        self.loadGame()
+                elif choice == 3:
+                    self.saveGame
+                elif choice == 4:
+                    print("Quitting game")
+                    quit = True
             else:
                 print(f"White's ({self.__Player2.getName()}) turn")
 
+                # if there are no valid moves, then skip their turn
+                if len(self.getValidMoves(2)) == 0:
+                    print("No valid moves, skipping turn")
+                    self.__Turn += 1
+                    continue
+
+                #display how much time they have left
+                print(f"you have {self.__p2time} seconds left")
+                currtime = time.time()
+
                 # get the players move
+                validmove = False
                 while not validmove:
                     column = int(input("Enter a column: ")) - 1
                     row = int(input("Enter a row: ")) - 1
@@ -78,6 +123,8 @@ class Othello:
                         validmove = True
                     else:
                         print("Invalid move, try again")
+
+                self.__p2time -= time.time() - currtime
 
             self.__Turn += 1
             self.__Board.displayBoard()
@@ -166,7 +213,7 @@ class Othello:
             return True
         return False              
 
-    def checkGameOver(self):
+    def checkGameOver(self,):
         '''
             Method: checkgameover
             Parameters: None
@@ -184,6 +231,8 @@ class Othello:
             Method: calculateWinner
             Parameters: None
             Returns: None
+
+            Does: Calculates the winner of the game
         '''
 
         if self.__Board.getBlackScore() > self.__Board.getWhiteScore():
@@ -192,6 +241,82 @@ class Othello:
             print(f"{self.__Player2.getName()} wins!")
         else:
             print("It's a tie!")
+
+    def saveGame(self):
+        '''
+            Method: saveGame
+            Parameters: None
+            Returns: None
+
+            Does: Saves the game to a file
+        '''
+
+        validchoice = False
+        while not validchoice:
+            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
+            if choice in [1,2,3]:
+                validchoice = True
+            elif choice == 4:
+                return None
+            else:
+                print("Invalid choice, try again")
+            
+        with open(f"save{choice}.txt", "w") as f:
+            f.write(f"{self.__Player1.getName()}\n")
+            f.write(f"{self.__Player2.getName()}\n")
+            f.write(f"{self.__Turn}\n")
+            f.write(f"{self.__p1time}\n")
+            f.write(f"{self.__p2time}\n")
+            for row in range(8):
+                for col in range(8):
+                    f.write(f"{self.__Board.getBoardPiece(col, row)}")
+                f.write("\n")
+            print("Game saved")
+
+    def loadGame(self):
+        '''
+            Method: loadGame
+            Parameters: None
+            Returns: None
+            
+            Does: Loads the game from a file
+        '''
+
+        validchoice = False
+        while not validchoice:
+            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
+            if choice in [1,2,3]:
+                validchoice = True
+            elif choice == 4:
+                return None
+            else:
+                print("Invalid choice, try again")
+        
+        with open(f"save{choice}.txt", "r") as f:
+            self.__Player1.setName(f.readline().strip())
+            self.__Player2.setName(f.readline().strip())
+            self.__Turn = int(f.readline().strip())
+            self.__p1time = int(f.readline().strip())
+            self.__p2time = int(f.readline().strip())
+            for row in range(8):
+                line = f.readline().strip()
+                for col in range(8):
+                    self.__Board.setBoard(col, row, BoardPiece(int(line[j])))
+            print("Game loaded")
+
+    def displayMenu(self):
+        '''
+            Method: displayMenu
+            Parameters: None
+            Returns: None
+            
+            Does: Displays the menu
+        '''
+
+        print("1. Play game")
+        print("2. Load game")
+        print("3. Save game")
+        print("4. Quit")
         
 
 
