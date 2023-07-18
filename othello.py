@@ -57,77 +57,96 @@ class Othello:
                 break
             if quit == True:
                 break
-            
+
             if self.__Turn % 2 == 1:
                 print(f"Black's ({self.__Player1.getName()}) turn")
 
                 # if there are no valid moves, then skip their turn
-                if len(self.getValidMoves(1)) == 0:
+                canplay = True
+                move = self.getValidMoves(1)
+                if len(move) == 0:
                     print("No valid moves, skipping turn")
                     self.__Turn += 1
-                    continue
+                    canplay = False
                 
                 #display the menu
-                self.displayMenu()
-                choice = int(input("Enter your choice (1,2,3,4): "))
-                if choice == 1:
-                    #display how much time they have left
-                    print(f"you have {self.__p1time} seconds left")
-                    currtime = time.time()
-        
-                    # get the players move
-                    validmove = False
-                    while not validmove:
-                        column = int(input("Enter a column: ")) - 1
-                        row = int(input("Enter a row: ")) - 1
-
-                        # check if the move is valid
-                        if self.isValidMove(1, column, row) and not self.__Board.isFull():
-                            self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
-                            validmove = True
-                        else:
-                            print("Invalid move, try again")
-                    self.__p1time -= time.time() - currtime
-                elif choice == 2:
-                    print("This will override the current game, would you like to continue? (y/n)")
-                    inp = input()
-                    if inp == "y":
-                        self.loadGame()
-                elif choice == 3:
-                    self.saveGame
-                elif choice == 4:
-                    print("Quitting game")
-                    quit = True
+                if canplay:
+                    self.displayMenu()
+                    choice = int(input("Enter your choice (1,2,3,4): "))
+                    if choice == 1:
+                        self.playMove(1)
+                    elif choice == 2:
+                        print("This will override the current game, would you like to continue? (y/n)")
+                        inp = input()
+                        if inp == "y":
+                            self.loadGame()
+                    elif choice == 3:
+                        self.saveGame
+                    elif choice == 4:
+                        print("Quitting game")
+                        quit = True
             else:
                 print(f"White's ({self.__Player2.getName()}) turn")
 
                 # if there are no valid moves, then skip their turn
-                if len(self.getValidMoves(2)) == 0:
+                canplay = True
+                move = self.getValidMoves(2)
+                if len(move) == 0:
                     print("No valid moves, skipping turn")
                     self.__Turn += 1
-                    continue
-
-                #display how much time they have left
-                print(f"you have {self.__p2time} seconds left")
-                currtime = time.time()
-
-                # get the players move
-                validmove = False
-                while not validmove:
-                    column = int(input("Enter a column: ")) - 1
-                    row = int(input("Enter a row: ")) - 1
-
-                    # check if the move is valid
-                    if self.isValidMove(2, column, row) and not self.__Board.isFull(): # also check if the board doesn't have any moves
-                        self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
-                        validmove = True
-                    else:
-                        print("Invalid move, try again")
-
-                self.__p2time -= time.time() - currtime
+                    canplay = False
+                
+                #display the menu
+                if canplay:
+                    self.displayMenu()
+                    choice = int(input("Enter your choice (1,2,3,4): "))
+                    if choice == 1:
+                        self.playMove(2)
+                    elif choice == 2:
+                        print("This will override the current game, would you like to continue? (y/n)")
+                        inp = input()
+                        if inp == "y":
+                            self.loadGame()
+                    elif choice == 3:
+                        self.saveGame
+                    elif choice == 4:
+                        print("Quitting game")
+                        quit = True
 
             self.__Turn += 1
             self.__Board.displayBoard()
+
+    def playMove(self, colour):
+        '''
+            Method: playMove
+            Parameters: colour
+            Returns: None
+            
+            Does: Plays a move for a player
+        '''
+        #display how much time they have left
+        print(f"you have {self.__p1time if colour == 1 else self.__p2time} seconds left")
+        currtime = time.time()
+
+        # get the players move
+        validmove = False
+        while not validmove:
+            column = int(input("Enter a column: ")) - 1
+            row = int(input("Enter a row: ")) - 1
+
+            # check if the move is valid
+            if self.isValidMove(colour, column, row) and not self.__Board.isFull():
+                if colour == 1:
+                    self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
+                elif colour == 2:
+                    self.__Board.setBoard(column, row, BoardPiece(self.__Player2.getPieceColour()))
+                validmove = True
+            else:
+                print("Invalid move, try again")
+        if colour == 1:
+            self.__p1time -= time.time() - currtime
+        elif colour == 2:
+            self.__p2time -= time.time() - currtime
 
 
     def setupGame(self, colour1, colour2):
@@ -159,7 +178,7 @@ class Othello:
         while True:
             nextcol = move[1] + dir[1] * i
             nextrow = move[0] + dir[0] * i
-            if self.coordvalid(nextcol, nextrow):
+            if self.coordValid(nextcol, nextrow):
                 # if the next piece is the same colour, break
                 if self.__Board.getBoardPiece(nextcol, nextrow) == colour:
                     break
@@ -169,6 +188,8 @@ class Othello:
                 # if the next piece is the opposite colour, continue
                 else:
                     i += 1
+            else:
+                break
         return i > 1
     
     def isValidMove(self, colour, col, row):
@@ -301,7 +322,7 @@ class Othello:
             for row in range(8):
                 line = f.readline().strip()
                 for col in range(8):
-                    self.__Board.setBoard(col, row, BoardPiece(int(line[j])))
+                    self.__Board.setBoard(col, row, BoardPiece(int(line[col])))
             print("Game loaded")
 
     def displayMenu(self):
@@ -322,5 +343,5 @@ class Othello:
 
 if __name__ == "__main__":
     
-    game = Othello(Player(input("Player 1 enter your name: ")), Player(input("Player 2 enter your name: ")))
+    game = Othello(Player(input("Player 1 enter your name: ")), Player(input("Player 2 enter your name: ")), 180, 1)
     game.playGame()
