@@ -35,6 +35,7 @@ class Othello:
         self.__Player2 = player2
         self.__Turn = turn
         self.__movedirections = [[-1,1], [0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0]]
+        self.__isTimer = False
         self.__p1time = timer
         self.__p2time = timer
 
@@ -72,7 +73,11 @@ class Othello:
                 #display the menu
                 if canplay:
                     self.displayMenu()
-                    choice = int(input("Enter your choice (1,2,3,4): "))
+                    choice = 0
+                    while choice not in [1,2,3,4]:
+                        choice = int(input("Enter your choice (1,2,3,4): "))
+                        if choice not in [1,2,3,4]:
+                            print("Invalid choice, try again")
                     if choice == 1:
                         self.playMove(1)
                     elif choice == 2:
@@ -81,7 +86,7 @@ class Othello:
                         if inp == "y":
                             self.loadGame()
                     elif choice == 3:
-                        self.saveGame
+                        self.saveGame()
                     elif choice == 4:
                         print("Quitting game")
                         quit = True
@@ -99,7 +104,12 @@ class Othello:
                 #display the menu
                 if canplay:
                     self.displayMenu()
-                    choice = int(input("Enter your choice (1,2,3,4): "))
+                    choice = 0
+                    while choice not in [1,2,3,4]:
+                        choice = int(input("Enter your choice (1,2,3,4): "))
+                        if choice not in [1,2,3,4]:
+                            print("Invalid choice, try again")
+
                     if choice == 1:
                         self.playMove(2)
                     elif choice == 2:
@@ -108,7 +118,7 @@ class Othello:
                         if inp == "y":
                             self.loadGame()
                     elif choice == 3:
-                        self.saveGame
+                        self.saveGame()
                     elif choice == 4:
                         print("Quitting game")
                         quit = True
@@ -135,11 +145,10 @@ class Othello:
             row = int(input("Enter a row: ")) - 1
 
             # check if the move is valid
-            if self.isValidMove(colour, column, row) and not self.__Board.isFull():
-                if colour == 1:
-                    self.__Board.setBoard(column, row, BoardPiece(self.__Player1.getPieceColour()))
-                elif colour == 2:
-                    self.__Board.setBoard(column, row, BoardPiece(self.__Player2.getPieceColour()))
+            valid = self.isValidMove(colour, column, row)[0]
+            if valid and not self.__Board.isFull():
+                flips = self.isValidMove(colour, column, row)[1]
+                self.doMove(colour, column, row, flips)
                 validmove = True
             else:
                 print("Invalid move, try again")
@@ -164,6 +173,8 @@ class Othello:
         #sets the players piece colour
         self.__Player1.setPieceColour(colour1)
         self.__Player2.setPieceColour(colour2)
+        if input("Would you like to play with a timer? (y/n): ") == "y":
+            self.__isTimer = True
 
     def willFlip(self, colour, move, dir):
         '''
@@ -200,11 +211,11 @@ class Othello:
             
             Does: Checks if the move is valid
         ''' 
-
+        moves = []
         for mov in self.__movedirections:
             if self.willFlip(colour, [row, col], mov):
-                return True
-        return False
+                moves.append(mov)
+        return len(moves) > 0, moves
 
     def getValidMoves(self,colour):
         '''
@@ -217,7 +228,7 @@ class Othello:
         moves = []
         for i in range(8):
             for j in range(8):
-                if self.isValidMove(colour, i, j):
+                if self.isValidMove(colour, i, j)[0]:
                     moves.append([i,j])
         return moves
     
@@ -262,6 +273,34 @@ class Othello:
             print(f"{self.__Player2.getName()} wins!")
         else:
             print("It's a tie!")
+    
+    def doMove(self, colour, col, row, dir):
+        '''
+            Method: doMove
+            Parameters: colour, col, row, dir
+            Returns: None
+            
+            Does: Plays the move for a player
+        '''
+        if colour == 1:
+            piece = BoardPiece(self.__Player1.getPieceColour())
+        else:
+            piece = BoardPiece(self.__Player2.getPieceColour())
+        self.__Board.setBoard(col, row, piece)
+        # search for next piece of the same color and flip anything between
+        for direction in dir:
+            i = 1
+            while True:
+                nextcol = col + direction[1] * i
+                nextrow = row + direction[0] * i
+                if self.coordValid(nextcol, nextrow):
+                    #if next piece is the same colour, break
+                    if self.__Board.getBoardPiece(nextcol, nextrow) == colour:
+                        break
+                    #if next piece is different colour, flip it
+                    else:
+                        self.__Board.setBoard(nextcol, nextrow, piece)
+                        i += 1
 
     def saveGame(self):
         '''
@@ -270,6 +309,13 @@ class Othello:
             Returns: None
 
             Does: Saves the game to a file
+            file format:
+                player1 name
+                player2 name
+                turn
+                player1 time
+                player2 time
+                board(8x8)
         '''
 
         validchoice = False
@@ -282,7 +328,7 @@ class Othello:
             else:
                 print("Invalid choice, try again")
             
-        with open(f"save{choice}.txt", "w") as f:
+        with open(f"game{choice}.txt", "w") as f:
             f.write(f"{self.__Player1.getName()}\n")
             f.write(f"{self.__Player2.getName()}\n")
             f.write(f"{self.__Turn}\n")
@@ -301,6 +347,13 @@ class Othello:
             Returns: None
             
             Does: Loads the game from a file
+            file format:
+                player1 name
+                player2 name
+                turn
+                player1 time
+                player2 time
+                board(8x8)
         '''
 
         validchoice = False
@@ -313,7 +366,7 @@ class Othello:
             else:
                 print("Invalid choice, try again")
         
-        with open(f"save{choice}.txt", "r") as f:
+        with open(f"game{choice}.txt", "r") as f:
             self.__Player1.setName(f.readline().strip())
             self.__Player2.setName(f.readline().strip())
             self.__Turn = int(f.readline().strip())
