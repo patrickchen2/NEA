@@ -11,3 +11,6 @@ class Player:
     
     def setPieceColour(self, colour):
         self.__pieceColour = colour
+
+    def setName(self, name):
+        self.__Name = name
