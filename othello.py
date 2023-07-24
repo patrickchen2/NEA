@@ -2,6 +2,8 @@ from board import Board
 from boardpiece import BoardPiece
 from player import Player
 import time
+import random
+from computer import Computer
 
 class Othello:
     '''
@@ -39,13 +41,13 @@ class Othello:
         self.__p1time = timer
         self.__p2time = timer
 
-    def playGame(self):
+    def twoPlayerGame(self):
         '''
             Method: playGame
             Parameters: None
             Returns: None
 
-            Does: Sets up the game and plays the game until the game is over
+            Does: Sets up the game and plays the game until the game is over for two players
         '''
 
         self.setupGame(1, 2)
@@ -126,6 +128,73 @@ class Othello:
             self.__Turn += 1
             self.__Board.displayBoard()
 
+    def onePlayerGame(self):
+        ''' 
+            Method: playGame
+            Parameters: None
+            Returns: None
+
+            Does: Sets up the game and plays the game until the game is over for one player
+        '''
+        self.setupGame(1, 2, True)
+        self.__Board.displayBoard()
+        print("Your are black (1) and the computer is white (2)")
+        quit = False
+        while True:
+            if self.checkGameOver():
+                self.calculateWinner()
+                break
+            if quit == True:
+                break
+
+            if self.__Turn % 2 == 1:
+                print(f"Black's ({self.__Player1.getName()}) turn")
+
+                # if there are no valid moves, then skip their turn
+                canplay = True
+                move = self.getValidMoves(1)
+                if len(move) == 0:
+                    print("No valid moves, skipping turn")
+                    self.__Turn += 1
+                    canplay = False
+                
+                #display the menu
+                if canplay:
+                    self.displayMenu()
+                    choice = 0
+                    while choice not in [1,2,3,4]:
+                        choice = int(input("Enter your choice (1,2,3,4): "))
+                        if choice not in [1,2,3,4]:
+                            print("Invalid choice, try again")
+                    if choice == 1:
+                        self.playMove(1)
+                    elif choice == 2:
+                        print("This will override the current game, would you like to continue? (y/n)")
+                        inp = input()
+                        if inp == "y":
+                            self.loadGame()
+                    elif choice == 3:
+                        self.saveGame()
+                    elif choice == 4:
+                        print("Quitting game")
+                        quit = True
+            else:
+                print("Computer's turn")
+
+                canplay = True
+                move = self.getValidMoves(2)
+                if len(move) == 0:
+                    print("No valid moves, skipping turn")
+                    self.__Turn += 1
+                    canplay = False
+                if canplay:
+                    if self.__Player2.getDifficulty() == 1:
+                        computermove = random.choice(move)
+                        self.doMove(2, computermove[0], computermove[1], computermove[2])
+
+            self.__Turn += 1
+            self.__Board.displayBoard()
+    
     def playMove(self, colour):
         '''
             Method: playMove
@@ -157,8 +226,7 @@ class Othello:
         elif colour == 2:
             self.__p2time -= time.time() - currtime
 
-
-    def setupGame(self, colour1, colour2):
+    def setupGame(self, colour1, colour2, singleplayer = False):
         '''
             Method: setupGame
             Parameters: colour1, colour2
@@ -166,15 +234,28 @@ class Othello:
             
             Does: Sets up the game with the starting pieces and sets the players piece colour
         '''
+        if not singleplayer:
+            # sets the board up with starting pieces
+            self.__Board.fillBoard()
 
-        # sets the board up with starting pieces
-        self.__Board.fillBoard()
-
-        #sets the players piece colour
-        self.__Player1.setPieceColour(colour1)
-        self.__Player2.setPieceColour(colour2)
-        if input("Would you like to play with a timer? (y/n): ") == "y":
-            self.__isTimer = True
+            #sets the players piece colour
+            self.__Player1.setPieceColour(colour1)
+            self.__Player2.setPieceColour(colour2)
+            if input("Would you like to play with a timer? (y/n): ") == "y":
+                self.__isTimer = True
+        else:
+            self.__Board.fillBoard()
+            self.__Player1.setPieceColour(colour1)
+            self.__Player2 = Computer("computer")
+            self.__Player2.setPieceColour(colour2)
+            if input("Would you like to play with a timer? (y/n): ") == "y":
+                self.__isTimer = True
+            print("""Select the difficulty of the computer
+            1. Easy
+            2. Medium
+            3. Hard""")
+            choice = int(input("Enter your choice (1,2,3): "))
+            self.__Player2.setDifficulty(choice)
 
     def willFlip(self, colour, move, dir):
         '''
@@ -209,7 +290,7 @@ class Othello:
             Parameters: colour, col, row
             Returns: True or False
             
-            Does: Checks if the move is valid
+            Does: Checks if the move is valid and in what direction
         ''' 
         moves = []
         for mov in self.__movedirections:
@@ -229,7 +310,7 @@ class Othello:
         for i in range(8):
             for j in range(8):
                 if self.isValidMove(colour, i, j)[0]:
-                    moves.append([i,j])
+                    moves.append([i,j, self.isValidMove(colour, i, j)[1]])
         return moves
     
     def coordValid(self, col, row):
@@ -391,10 +472,25 @@ class Othello:
         print("2. Load game")
         print("3. Save game")
         print("4. Quit")
-        
-
+ 
+    def playGame(self, singleplayer = False):
+        '''
+            Method: playGame
+            Parameters: None
+            Returns: None
+            
+            Does: Plays the game
+        '''
+        if singleplayer:
+            self.onePlayerGame()
+        else:
+            self.twoPlayerGame()
 
 if __name__ == "__main__":
-    
-    game = Othello(Player(input("Player 1 enter your name: ")), Player(input("Player 2 enter your name: ")), 180, 1)
-    game.playGame()
+    a = input("single player? (y/n): ")
+    if a == "y":
+        game = Othello(Player(input("Player 1 enter your name: ")), Player("computer"), 180, 1)
+        game.playGame(True)
+    else:
+        game = Othello(Player(input("Player 1 enter your name: ")), Player(input("Player 2 enter your name (if playing single player then ignore): ")), 180, 1)
+        game.playGame(False)
