@@ -1,11 +1,14 @@
 from boardpiece import BoardPiece
 class Board:
-    def __init__(self):
-        self.__Board = [[None for x in range(8)] for y in range(8)]
+    def __init__(self, board):
+        self.__Board = board
     
     def getBoard(self):
         return self.__Board
     
+    def changeBoard(self, board):
+        self.__Board = board
+
     def displayBoard(self):
         print("  1 2 3 4 5 6 7 8")
         for i in range(8):
@@ -43,10 +46,11 @@ class Board:
 
     def getWhiteScore(self):
         count = 0
-        for i in range(8):
-            for j in range(8):
-                if self.__Board[i][j] == 2:
-                    count += 1
+        for row in range(8):
+            for col in range(8):
+                if self.__Board[row][col]:
+                    if self.__Board[row][col].getValue() == 2:
+                        count += 1
 
         return count
 
@@ -54,7 +58,7 @@ class Board:
         count = 0
         for i in range(8):
             for j in range(8):
-                if self.__Board[i][j] == 1:
+                if self.__Board[i][j].getValue() == 1:
                     count += 1
 
         return count
