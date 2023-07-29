@@ -6,13 +6,21 @@ class Board:
     def getBoard(self):
         return self.__Board
     
-    def changeBoard(self, board):
-        self.__Board = board
-
+    def boardAsList(self):
+        boardList = []
+        for row in range(8):
+            rowlist = []
+            for col in range(8):
+                if self.__Board[row][col]:
+                    rowlist.append(self.__Board[row][col].getValue())
+                else:
+                    rowlist.append(0)
+            boardList.append(rowlist)
+        return boardList
     def displayBoard(self):
-        print("  1 2 3 4 5 6 7 8")
+        print("  0 1 2 3 4 5 6 7")
         for i in range(8):
-            print(i+1, end = " ")
+            print(i, end = " ")
             for j in range(8):
                 if self.__Board[i][j]:
                     print(self.__Board[i][j].getValue(), end = " ")

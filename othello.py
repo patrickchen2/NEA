@@ -182,8 +182,10 @@ class Othello:
                         inp = input()
                         if inp == "y":
                             self.loadGame()
+                        self.__Turn -= 1
                     elif choice == 3:
                         self.saveGame()
+                        self.__Turn -= 1
                     elif choice == 4:
                         print("Quitting game")
                         quit = True
@@ -200,6 +202,8 @@ class Othello:
                     if self.__Player2.getDifficulty() == 1:
                         #choose a random move from the list of valid moves
                         computermove = random.choice(move)
+                        print(move)
+                        print(computermove)
                     if self.__Player2.getDifficulty() == 2:
                         #choose the move which flips the most pieces
                         same = copy.deepcopy(self.__Board.getBoard())
@@ -216,6 +220,12 @@ class Othello:
                             for row in range(8):
                                 for col in range(8):
                                     self.__Board.setBoard(col, row, same[row][col])
+                    if self.__Player2.getDifficulty() == 3:
+                        print(move)
+                        computermove, score = self.minimax(self.__Board.boardAsList(), 3, True)
+                        print(f"minimax score: {score}")
+                
+
 
                     self.doMove(2, computermove[0], computermove[1], computermove[2])
 
@@ -239,8 +249,8 @@ class Othello:
         # get the players move
         validmove = False
         while not validmove:
-            column = int(input("Enter a column: ")) - 1
-            row = int(input("Enter a row: ")) - 1
+            column = int(input("Enter a column: "))
+            row = int(input("Enter a row: "))
 
             # check if the move is valid
             valid = self.isValidMove(colour, column, row)[0]
@@ -325,7 +335,7 @@ class Othello:
         ''' 
         moves = []
         for mov in self.__movedirections:
-            if self.willFlip(colour, [row, col], mov):
+            if self.willFlip(colour, [row, col], mov) and self.__Board.getBoardPiece(col, row) == 0:
                 moves.append(mov)
         return len(moves) > 0, moves
 
@@ -520,6 +530,150 @@ class Othello:
             self.onePlayerGame()
         else:
             self.twoPlayerGame()
+
+    def calculateScore(self, board, colour, row, col):
+        '''
+            Method: calculateScore
+            Parameters: board, colour, row, col
+            Returns: score
+
+            Does: Calculates the score of the board
+        '''
+
+        matrix = [[100, -10, 11, 6, 6, 11, -10, 100],
+                  [-10, -20, 1, 2, 2, 1, -20, -10],
+                  [11, 1, 5, 4, 4, 5, 1, 11],
+                  [6, 2, 4, 2, 2, 4, 2, 6],
+                  [6, 2, 4, 2, 2, 4, 2, 6],
+                  [11, 1, 5, 4, 4, 5, 1, 11],
+                  [-10, -20, 1, 2, 2, 1, -20, -10],
+                  [100, -10, 11, 6, 6, 11, -10, 100]]
+        score = matrix[row][col]
+        for piece in board:
+            if piece == colour:
+                score += 0.5
+            elif piece == 0:
+                score += 0.1
+            else:
+                score -= 0.5
+        return score
+    
+    def getValidMovesList(self, board, colour):
+        '''
+            Method: getValidMovesList
+            Parameters: board, colour
+            Returns: moves
+
+            Does: Gets all the valid moves for a player
+        '''
+        moves = []
+        for i in range(8):
+            for j in range(8):
+                if self.isValidMoveList(board, colour, i, j)[0]:
+                    moves.append([i,j, self.isValidMoveList(board, colour, i, j)[1]])
+        return moves
+
+    def isValidMoveList(self, board, colour, col, row):
+        '''
+            Method: isvalidmove
+            Parameters: colour, col, row
+            Returns: True or False
+
+            Does: Checks if the move is valid and in what direction
+        '''
+        moves = []
+        for mov in self.__movedirections:
+            if self.willFlipList(board, colour, [row, col], mov):
+                moves.append(mov)
+        return len(moves) > 0, moves
+    
+    def willFlipList(self, board, colour, move, dir):
+        i = 1
+        while True:
+            nextcol = move[1] + dir[1] * i
+            nextrow = move[0] + dir[0] * i
+            if self.coordValid(nextcol, nextrow):
+                # if the next piece is the same colour, break
+                if board[nextrow][nextcol] == colour:
+                    break
+                # if the next piece is empty, return false
+                elif board[nextrow][nextcol] == 0:
+                    return False
+                # if the next piece is the opposite colour, continue
+                else:
+                    i += 1
+            else:
+                break
+        return i > 1
+    
+    def doMoveList(self, colour, board, col, row, dir): 
+        if colour == 1:
+            piece = 1
+        else:
+            piece = 2
+        board[row][col] = piece
+        # search for next piece of the same color and flip anything between
+        for direction in dir:
+            i = 1
+            while True:
+                nextcol = col + direction[1] * i
+                nextrow = row + direction[0] * i
+                if self.coordValid(nextcol, nextrow):
+                    #if next piece is the same colour, break
+                    if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
+                        break
+                        
+                    #if next piece is different colour, flip it
+                    else:
+                        board[nextrow][nextcol] = piece
+                        i += 1
+                else:
+                    break
+
+    def minimax(self, board, depth, ismaximising):
+        '''
+            Method: minimax
+            Parameters: board, depth, ismaximising
+            Returns: score
+            
+            Does: Calculates the score of the board
+        '''
+        validlocations = self.getValidMovesList(board, 2)
+        isfinished = (len(self.getValidMovesList(board, 1)) == 0) and (len(self.getValidMovesList(board, 2)) == 0)
+        if depth == 0 or isfinished:
+            if isfinished:
+                if self.calculateScore(board, 2, 0, 0) > self.calculateScore(board, 1, 0, 0):
+                    return None, 100000000000000
+                elif self.calculateScore(board, 2, 0, 0) < self.calculateScore(board, 1, 0, 0):
+                    return None, -10000000000000
+                else:
+                    return None, 0
+            else:
+                return None, self.calculateScore(board, 2, 0, 0)
+        if ismaximising:
+            value = -100000000000000
+            move = random.choice(validlocations)
+            for mov in validlocations:
+                b = copy.deepcopy(board)
+                self.doMoveList(2, b, mov[0], mov[1], mov[2])
+                new_score = self.minimax(b, depth - 1, False)[1]
+                if new_score > value:
+                    value = new_score
+                    move = mov
+            return move, value
+        else:
+            value = 100000000000000
+            col = random.choice(validlocations)
+            for mov in validlocations:
+                b = copy.deepcopy(board)
+                self.doMoveList(1, b, mov[0], mov[1], mov[2])
+                new_score = self.minimax(b, depth - 1, True)[1]
+                if new_score < value:
+                    value = new_score
+                    col = mov
+            return col, value
+
+
 
 if __name__ == "__main__":
     a = input("single player? (y/n): ")
