@@ -202,8 +202,6 @@ class Othello:
                     if self.__Player2.getDifficulty() == 1:
                         #choose a random move from the list of valid moves
                         computermove = random.choice(move)
-                        print(move)
-                        print(computermove)
                     if self.__Player2.getDifficulty() == 2:
                         #choose the move which flips the most pieces
                         same = copy.deepcopy(self.__Board.getBoard())
@@ -221,12 +219,11 @@ class Othello:
                                 for col in range(8):
                                     self.__Board.setBoard(col, row, same[row][col])
                     if self.__Player2.getDifficulty() == 3:
-                        print(move)
                         computermove, score = self.minimax(self.__Board.boardAsList(), 3, True)
                         print(f"minimax score: {score}")
                 
 
-
+                    print(f"computer move: row: {computermove[0]}, col: {computermove[1]}")
                     self.doMove(2, computermove[0], computermove[1], computermove[2])
 
 
@@ -531,13 +528,13 @@ class Othello:
         else:
             self.twoPlayerGame()
 
-    def calculateScore(self, board, colour, row, col):
+    def calculateScore(self, board, colour):
         '''
             Method: calculateScore
             Parameters: board, colour, row, col
             Returns: score
 
-            Does: Calculates the score of the board
+            Does: Calculates the score of the board for a certain player
         '''
 
         matrix = [[100, -10, 11, 6, 6, 11, -10, 100],
@@ -548,14 +545,16 @@ class Othello:
                   [11, 1, 5, 4, 4, 5, 1, 11],
                   [-10, -20, 1, 2, 2, 1, -20, -10],
                   [100, -10, 11, 6, 6, 11, -10, 100]]
-        score = matrix[row][col]
-        for piece in board:
-            if piece == colour:
-                score += 0.5
-            elif piece == 0:
-                score += 0.1
-            else:
-                score -= 0.5
+        score = 0
+        for row in range(8):
+            for col in range(8):
+                if board[row][col] == colour:
+                    score += matrix[row][col]
+                elif board[row][col] == 0:
+                    pass
+                else:
+                    score -= matrix[row][col]
+        print(score)
         return score
     
     def getValidMovesList(self, board, colour):
@@ -569,7 +568,7 @@ class Othello:
         moves = []
         for i in range(8):
             for j in range(8):
-                if self.isValidMoveList(board, colour, i, j)[0]:
+                if self.isValidMoveList(board, colour, i, j)[0] and board[i][j] == 0:
                     moves.append([i,j, self.isValidMoveList(board, colour, i, j)[1]])
         return moves
 
@@ -642,14 +641,25 @@ class Othello:
         isfinished = (len(self.getValidMovesList(board, 1)) == 0) and (len(self.getValidMovesList(board, 2)) == 0)
         if depth == 0 or isfinished:
             if isfinished:
-                if self.calculateScore(board, 2, 0, 0) > self.calculateScore(board, 1, 0, 0):
+                # calculate who won that simulation
+                blackcount = 0
+                whitecount = 0
+                for row in range(8):
+                    for col in range(8):
+                        if board[row][col] == 1:
+                            blackcount += 1
+                        elif board[row][col] == 2:
+                            whitecount += 1
+                
+                if whitecount > blackcount:
                     return None, 100000000000000
-                elif self.calculateScore(board, 2, 0, 0) < self.calculateScore(board, 1, 0, 0):
+                elif blackcount > whitecount:
                     return None, -10000000000000
                 else:
                     return None, 0
             else:
-                return None, self.calculateScore(board, 2, 0, 0)
+                return None, self.calculateScore(board, 2)
+            
         if ismaximising:
             value = -100000000000000
             move = random.choice(validlocations)
