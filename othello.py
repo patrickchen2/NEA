@@ -1,5 +1,3 @@
-from board import Board
-from boardpiece import BoardPiece
 from player import Player
 import time
 import random
@@ -33,7 +31,7 @@ class Othello:
             takes the two players as parameters
         '''
 
-        self.__Board = Board([[None for x in range(8)] for y in range(8)])
+        self.__Board = [[0 for i in range(8)] for j in range(8)]
         self.__Player1 = player1
         self.__Player2 = player2
         self.__Turn = turn
@@ -44,489 +42,157 @@ class Othello:
 
     def twoPlayerGame(self):
         '''
-            Method: playGame
+            Method: twoPlayerGame
             Parameters: None
             Returns: None
-
-            Does: Sets up the game and plays the game until the game is over for two players
+            Does: Runs the game for two players
         '''
+        self.setupGame(self.__Board)
+        while not self.checkgameover(self.__Board):
+            self.displayBoard(self.__Board)
+            choice = input("""
+            1. Play
+            2. Save
+            3. Load
+            4. Quit""")
+            if choice == "1":
+                if self.__Turn % 2 == 1:
+                    print("White turn")
+                    currtime = time.time()
+                    valid = False
+                    while not valid:
+                        column = int(input("enter a column between 0 and 7: "))
+                        row = int(input("enter a row between 0 and 7: "))
+                        valid, dir = self.isvalidmove(self.__Board, column, row, 1)
+                        if not valid:
+                            print("Invalid move")
+                    self.playGame(self.__Board, column, row, 1, dir)
+                    if self.__isTimer:
+                        self.__p1time -= time.time() - currtime
+                        if self.__p1time <= 0:
+                            print("Player 1 ran out of time")
+                            print("Player 2 wins!")
+                            return None
+                else:
+                    print("Black turn")
+                    currtime = time.time()
+                    valid = False
+                    while not valid:
+                        column = int(input("enter a column between 0 and 7: "))
+                        row = int(input("enter a row between 0 and 7: "))
+                        valid, dir = self.isvalidmove(self.__Board, column, row, 2)
+                        if not valid:
+                            print("Invalid move")
+                    self.playGame(self.__Board, column, row, 2, dir)
+                    if self.__isTimer:
+                        self.__p2time -= time.time() - currtime
+                        if self.__p2time <= 0:
+                            print("Player 2 ran out of time")
+                            print("Player 1 wins!")
+                            return None
 
-        self.setupGame(1, 2)
-        self.__Board.displayBoard()
-        print("Black is 1 and White is 2")
-        quit = False
-        while True:
-            if self.checkGameOver():
-                self.calculateWinner()
-                break
-            if quit == True:
-                break
-
-            if self.__Turn % 2 == 1:
-                print(f"Black's ({self.__Player1.getName()}) turn")
-
-                # if there are no valid moves, then skip their turn
-                canplay = True
-                move = self.getValidMoves(1)
-                if len(move) == 0:
-                    print("No valid moves, skipping turn")
-                    self.__Turn += 1
-                    canplay = False
-                if self.__p1time <= 0:
-                    canplay = False
-                    self.calculateWinner()
-                    break
-                #display the menu
-                if canplay:
-                    self.displayMenu()
-                    choice = 0
-                    while choice not in [1,2,3,4]:
-                        choice = int(input("Enter your choice (1,2,3,4): "))
-                        if choice not in [1,2,3,4]:
-                            print("Invalid choice, try again")
-                    if choice == 1:
-                        self.playMove(1)
-                    elif choice == 2:
-                        print("This will override the current game, would you like to continue? (y/n)")
-                        inp = input()
-                        if inp == "y":
-                            self.loadGame()
-                    elif choice == 3:
-                        self.saveGame()
-                    elif choice == 4:
-                        print("Quitting game")
-                        quit = True
-            else:
-                print(f"White's ({self.__Player2.getName()}) turn")
-
-                # if there are no valid moves, then skip their turn
-                canplay = True
-                move = self.getValidMoves(2)
-                if len(move) == 0:
-                    print("No valid moves, skipping turn")
-                    self.__Turn += 1
-                    canplay = False
-                if self.__p2time <= 0:
-                    canplay = False
-                    self.calculateWinner()
-                    break
-                #display the menu
-                if canplay:
-                    self.displayMenu()
-                    choice = 0
-                    while choice not in [1,2,3,4]:
-                        choice = int(input("Enter your choice (1,2,3,4): "))
-                        if choice not in [1,2,3,4]:
-                            print("Invalid choice, try again")
-                    if choice == 1:
-                        self.playMove(2)
-                    elif choice == 2:
-                        print("This will override the current game, would you like to continue? (y/n)")
-                        inp = input()
-                        if inp == "y":
-                            self.loadGame()
-                    elif choice == 3:
-                        self.saveGame()
-                    elif choice == 4:
-                        print("Quitting game")
-                        quit = True
-
-            self.__Turn += 1
-            self.__Board.displayBoard()
+                self.__Turn += 1
+            elif choice == "2":
+                self.saveGame()
+            elif choice == "3":
+                self.loadGame()
+            elif choice == "4":
+                return None
+        self.calculateWinner()
 
     def onePlayerGame(self):
-        ''' 
-            Method: playGame
-            Parameters: None
-            Returns: None
-
-            Does: Sets up the game and plays the game until the game is over for one player
-        '''
-        self.setupGame(1, 2, True)
-        self.__Board.displayBoard()
-        print("Your are black (1) and the computer is white (2)")
-        quit = False
-        while True:
-            if self.checkGameOver():
-                self.calculateWinner()
-                break
-            if quit == True:
-                break
-
-            if self.__Turn % 2 == 1:
-                print(f"Black's ({self.__Player1.getName()}) turn")
-
-                # if there are no valid moves, then skip their turn
-                canplay = True
-                move = self.getValidMoves(1)
-                if len(move) == 0:
-                    print("No valid moves, skipping turn")
-                    self.__Turn += 1
-                    canplay = False
-                if self.__p1time <= 0:
-                    canplay = False
-                    self.calculateWinner()
-                    break
-                #display the menu
-                if canplay:
-                    self.displayMenu()
-                    choice = 0
-                    while choice not in [1,2,3,4]:
-                        choice = int(input("Enter your choice (1,2,3,4): "))
-                        if choice not in [1,2,3,4]:
-                            print("Invalid choice, try again")
-                    if choice == 1:
-                        self.playMove(1)
-                    elif choice == 2:
-                        print("This will override the current game, would you like to continue? (y/n)")
-                        inp = input()
-                        if inp == "y":
-                            self.loadGame()
-                        self.__Turn -= 1
-                    elif choice == 3:
-                        self.saveGame()
-                        self.__Turn -= 1
-                    elif choice == 4:
-                        print("Quitting game")
-                        quit = True
-            else:
-                print("Computer's turn")
-
-                canplay = True
-                move = self.getValidMoves(2)
-                if len(move) == 0:
-                    print("No valid moves, skipping turn")
-                    self.__Turn += 1
-                    canplay = False
-                if canplay:
+        self.setupGame(self.__Board)
+        self.__Player2 = Computer("Computer")
+        self.__Player2.setDifficulty(int(input("Enter the difficulty of the computer (1-4): ")))
+        while not self.checkgameover(self.__Board):
+            self.displayBoard(self.__Board)
+            choice = input("""
+            1. Play
+            2. Save
+            3. Load
+            4. Quit""")
+            if choice == "1":
+                if self.__Turn % 2 == 1:
+                    print("White turn")
+                    
+                    valid = False
+                    while not valid:
+                        column = int(input("enter a column between 0 and 7: "))
+                        row = int(input("enter a row between 0 and 7: "))
+                        valid, dir = self.isvalidmove(self.__Board, column, row, 1)
+                        if not valid:
+                            print("Invalid move")
+                    self.playGame(self.__Board, column, row, 1, dir)
+                else:
+                    print("Computer turn")
+                    move = self.getValidMoves(2)
                     if self.__Player2.getDifficulty() == 1:
                         #choose a random move from the list of valid moves
                         computermove = random.choice(move)
                     if self.__Player2.getDifficulty() == 2:
                         #choose the move which flips the most pieces
-                        same = copy.deepcopy(self.__Board.getBoard())
+                        same = copy.deepcopy(self.__Board)
                         print(same)
                         maxflips = 0
                         computermove = random.choice(move)
                         for mov in move:
-                            curr_score = self.__Board.getWhiteScore()
-                            self.doMove(2, mov[0], mov[1], mov[2])
-                            score_diff = self.__Board.getWhiteScore() - curr_score
+                            curr_score = self.getWhiteScore(same)
+                            self.playGame(same, mov[0][0], mov[0][1], 2, mov[1])
+                            score_diff = self.getWhiteScore(same) - curr_score
                             if score_diff > maxflips:
                                 maxflips = score_diff
                                 computermove = mov
-                            for row in range(8):
-                                for col in range(8):
-                                    self.__Board.setBoard(col, row, same[row][col])
+                            
                     if self.__Player2.getDifficulty() == 3:
-                        computermove, score = self.minimax(self.__Board.boardAsList(), 3, True)
+                        computermove, score = self.minimax(self.__Board, 3, True)
                         print(f"minimax score: {score}")
-                
-
-                    print(f"computer move: row: {computermove[0]}, col: {computermove[1]}")
-                    self.doMove(2, computermove[0], computermove[1], computermove[2])
-
-
-            self.__Turn += 1
-            self.__Board.displayBoard()
-    
-    def playMove(self, colour):
-        '''
-            Method: playMove
-            Parameters: colour
-            Returns: None
-            
-            Does: Plays a move for a player
-        '''
-        #display how much time they have left
-        if self.__isTimer:
-            print(f"you have {self.__p1time if colour == 1 else self.__p2time} seconds left")
-            currtime = time.time()
-
-        # get the players move
-        validmove = False
-        while not validmove:
-            column = int(input("Enter a column: "))
-            row = int(input("Enter a row: "))
-
-            # check if the move is valid
-            valid = self.isValidMove(colour, column, row)[0]
-
-            if valid and not self.__Board.isFull():
-                flips = self.isValidMove(colour, column, row)[1]
-                self.doMove(colour, column, row, flips)
-                validmove = True
-            else:
-                print("Invalid move, try again")
-        if self.__isTimer:
-            if colour == 1:
-                self.__p1time -= time.time() - currtime
-            elif colour == 2:
-                self.__p2time -= time.time() - currtime
-
-    def setupGame(self, colour1, colour2, singleplayer = False):
+                    self.playGame(self.__Board, computermove[0][0], computermove[0][1], 2, computermove[1])
+    def setupGame(self,board):
         '''
             Method: setupGame
-            Parameters: colour1, colour2
+            Parameters: None
             Returns: None
-            
-            Does: Sets up the game with the starting pieces and sets the players piece colour
+            Does: Sets up the game by placing the initial pieces
         '''
-        if not singleplayer:
-            # sets the board up with starting pieces
-            self.__Board.fillBoard()
-
-            #sets the players piece colour
-            self.__Player1.setPieceColour(colour1)
-            self.__Player2.setPieceColour(colour2)
-            if input("Would you like to play with a timer? (y/n): ") == "y":
-                self.__isTimer = True
+        board[3][3] = 1
+        board[4][4] = 1
+        board[3][4] = 2
+        board[4][3] = 2
+        if self.__p1time == -1:
+            self.__isTimer = False
         else:
-            self.__Board.fillBoard()
-            self.__Player1.setPieceColour(colour1)
-            self.__Player2 = Computer("computer")
-            self.__Player2.setPieceColour(colour2)
-            if input("Would you like to play with a timer? (y/n): ") == "y":
-                self.__isTimer = True
-            print("""Select the difficulty of the computer
-            1. Easy
-            2. Medium
-            3. Hard""")
-            choice = int(input("Enter your choice (1,2,3): "))
-            self.__Player2.setDifficulty(choice)
+            self.__isTimer = True
 
-    def willFlip(self, colour, move, dir):
-        '''
-            Method: willflip
-            Parameters: colour, move, dir
-            Returns: True or False
-            
-            Does: Checks if the move will flip any pieces
-        '''    
+    def getWhiteScore(self, board):
+        count = 0
+        for row in range(8):
+            for col in range(8):
+                if board[row][col] == 1:
+                    count += 1
 
-        i = 1
-        while True:
-            nextcol = move[1] + dir[1] * i
-            nextrow = move[0] + dir[0] * i
-            if self.coordValid(nextcol, nextrow):
-                # if the next piece is the same colour, break
-                if self.__Board.getBoardPiece(nextcol, nextrow) == colour:
-                    break
-                # if the next piece is empty, return false
-                elif self.__Board.getBoardPiece(nextcol, nextrow) == 0:
-                    return False
-                # if the next piece is the opposite colour, continue
-                else:
-                    i += 1
-            else:
-                break
-        return i > 1
+        return count
     
-    def isValidMove(self, colour, col, row):
-        '''
-            Method: isvalidmove
-            Parameters: colour, col, row
-            Returns: True or False
-            
-            Does: Checks if the move is valid and in what direction
-        ''' 
-        moves = []
-        for mov in self.__movedirections:
-            if self.willFlip(colour, [row, col], mov) and self.__Board.getBoardPiece(col, row) == 0:
-                moves.append(mov)
-        return len(moves) > 0, moves
-
-    def getValidMoves(self,colour):
-        '''
-            Method: getvalidmoves
-            Parameters: colour
-            Returns: moves
-            
-            Does: Gets all the valid moves for a player
-        '''
-        moves = []
-        for i in range(8):
-            for j in range(8):
-                if self.isValidMove(colour, i, j)[0]:
-                    moves.append([i,j, self.isValidMove(colour, i, j)[1]])
-        return moves
-    
-    def coordValid(self, col, row):
-        '''
-            Method: coordvalid
-            Parameters: col, row
-            Returns: True or False
-            
-            Does: Checks if the coordinates are valid (between 0 and 7)
-        '''
+    def getBlackScore(self, board):
+        count = 0
+        for row in range(8):
+            for col in range(8):
+                if board[row][col] == 2:
+                    count += 1
         
-        if 0 <= col <= 7 and 0 <= row <= 7:
-            return True
-        else:
-            return False              
+        return count
 
-    def checkGameOver(self,):
-        '''
-            Method: checkgameover
-            Parameters: None
-            Returns: True or False
-            
-            Does: Checks if the game is over
-        '''
-
-        if self.__Board.isFull() and len(self.getValidMoves(1)) == 0 and len(self.getValidMoves(2)) == 0:
-            return True
-        return False
-
-    def calculateWinner(self): 
-        '''
-            Method: calculateWinner
-            Parameters: None
-            Returns: None
-
-            Does: Calculates the winner of the game
-        '''
-
-        if self.__Board.getBlackScore() > self.__Board.getWhiteScore():
-            print(f"{self.__Player1.getName()} wins!")
-        elif self.__Board.getBlackScore() < self.__Board.getWhiteScore():
-            print(f"{self.__Player2.getName()} wins!")
-        else:
-            print("It's a tie!")
-    
-    def doMove(self, colour, col, row, dir):
-        '''
-            Method: doMove
-            Parameters: colour, col, row, dir
-            Returns: None
-            
-            Does: Plays the move for a player
-        '''
-        if colour == 1:
-            piece = BoardPiece(self.__Player1.getPieceColour())
-        else:
-            piece = BoardPiece(self.__Player2.getPieceColour())
-        self.__Board.setBoard(col, row, piece)
-        # search for next piece of the same color and flip anything between
-        for direction in dir:
+    def playGame(self, board,  col, row, colour, direction):
+        for dir in direction:
             i = 1
             while True:
-                nextcol = col + direction[1] * i
-                nextrow = row + direction[0] * i
-                if self.coordValid(nextcol, nextrow):
-                    #if next piece is the same colour, break
-                    if self.__Board.getBoardPiece(nextcol, nextrow) == colour or self.__Board.getBoardPiece(nextcol, nextrow) == 0:
-                        break
-                        
-                    #if next piece is different colour, flip it
-                    else:
-                        self.__Board.setBoard(nextcol, nextrow, piece)
-                        i += 1
-                else:
+                nextrow = row + i*dir[0]
+                nextcol = col + i*dir[1]
+                if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
                     break
-
-    def saveGame(self):
-        '''
-            Method: saveGame
-            Parameters: None
-            Returns: None
-
-            Does: Saves the game to a file
-            file format:
-                player1 name
-                player2 name
-                turn
-                player1 time
-                player2 time
-                board(8x8)
-        '''
-
-        validchoice = False
-        while not validchoice:
-            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
-            if choice in [1,2,3]:
-                validchoice = True
-            elif choice == 4:
-                return None
-            else:
-                print("Invalid choice, try again")
-            
-        with open(f"game{choice}.txt", "w") as f:
-            f.write(f"{self.__Player1.getName()}\n")
-            f.write(f"{self.__Player2.getName()}\n")
-            f.write(f"{self.__Turn}\n")
-            f.write(f"{self.__p1time}\n")
-            f.write(f"{self.__p2time}\n")
-            for row in range(8):
-                for col in range(8):
-                    f.write(f"{self.__Board.getBoardPiece(col, row)}")
-                f.write("\n")
-            print("Game saved")
-
-    def loadGame(self):
-        '''
-            Method: loadGame
-            Parameters: None
-            Returns: None
-            
-            Does: Loads the game from a file
-            file format:
-                player1 name
-                player2 name
-                turn
-                player1 time
-                player2 time
-                board(8x8)
-        '''
-
-        validchoice = False
-        while not validchoice:
-            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
-            if choice in [1,2,3]:
-                validchoice = True
-            elif choice == 4:
-                return None
-            else:
-                print("Invalid choice, try again")
-        
-        with open(f"game{choice}.txt", "r") as f:
-            self.__Player1.setName(f.readline().strip())
-            self.__Player2.setName(f.readline().strip())
-            self.__Turn = int(f.readline().strip())
-            self.__p1time = int(f.readline().strip())
-            self.__p2time = int(f.readline().strip())
-            for row in range(8):
-                line = f.readline().strip()
-                for col in range(8):
-                    self.__Board.setBoard(col, row, BoardPiece(int(line[col])))
-            print("Game loaded")
-
-    def displayMenu(self):
-        '''
-            Method: displayMenu
-            Parameters: None
-            Returns: None
-            
-            Does: Displays the menu
-        '''
-
-        print("1. Play game")
-        print("2. Load game")
-        print("3. Save game")
-        print("4. Quit")
- 
-    def playGame(self, singleplayer = False):
-        '''
-            Method: playGame
-            Parameters: None
-            Returns: None
-            
-            Does: Plays the game
-        '''
-        if singleplayer:
-            self.onePlayerGame()
-        else:
-            self.twoPlayerGame()
+                else:
+                    board[nextrow][nextcol] = colour
+                    i+=1
+        board[row][col] = colour
 
     def calculateScore(self, board, colour):
         '''
@@ -557,77 +223,116 @@ class Othello:
         print(score)
         return score
     
-    def getValidMovesList(self, board, colour):
-        '''
-            Method: getValidMovesList
-            Parameters: board, colour
-            Returns: moves
+    def checkgameover(self, board):
+        for row in range(8):
+            for col in range(8):
+                if board[row][col] == 0:
+                    return False
+        return True
+    
+    def calculateWinner(self):
+        white = 0
+        black = 0
+        for row in range(8):
+            for col in range(8):
+                if self.__Board[row][col] == 1:
+                    white += 1
+                elif self.__Board[row][col] == 2:
+                    black += 1
 
-            Does: Gets all the valid moves for a player
-        '''
+        if white > black:
+            print("White wins!")
+        elif black > white:
+            print("Black wins!")
+        else:
+            print("It's a tie!")
+
+    def isvalidmove(self, board, col, row, colour):
+        valid = False
         moves = []
-        for i in range(8):
-            for j in range(8):
-                if self.isValidMoveList(board, colour, i, j)[0] and board[i][j] == 0:
-                    moves.append([i,j, self.isValidMoveList(board, colour, i, j)[1]])
-        return moves
-
-    def isValidMoveList(self, board, colour, col, row):
-        '''
-            Method: isvalidmove
-            Parameters: colour, col, row
-            Returns: True or False
-
-            Does: Checks if the move is valid and in what direction
-        '''
-        moves = []
-        for mov in self.__movedirections:
-            if self.willFlipList(board, colour, [row, col], mov):
-                moves.append(mov)
+        for direction in self.__movedirections:
+            if self.willFlip(board, col, row, direction, colour):
+                moves.append(direction)
         return len(moves) > 0, moves
     
-    def willFlipList(self, board, colour, move, dir):
+    def willFlip(self, board, col, row, direction, colour):
         i = 1
         while True:
-            nextcol = move[1] + dir[1] * i
-            nextrow = move[0] + dir[0] * i
-            if self.coordValid(nextcol, nextrow):
-                # if the next piece is the same colour, break
-                if board[nextrow][nextcol] == colour:
-                    break
-                # if the next piece is empty, return false
-                elif board[nextrow][nextcol] == 0:
+            newcol = col + i*direction[1]
+            newrow = row + i*direction[0]
+            if 0<=newcol<=7 and 0<=newrow<=7:
+                if board[newrow][newcol] == 0:
                     return False
-                # if the next piece is the opposite colour, continue
+                elif board[newrow][newcol] == colour:
+                    break
                 else:
                     i += 1
             else:
                 break
         return i > 1
     
-    def doMoveList(self, colour, board, col, row, dir): 
-        if colour == 1:
-            piece = 1
-        else:
-            piece = 2
-        board[row][col] = piece
-        # search for next piece of the same color and flip anything between
-        for direction in dir:
-            i = 1
-            while True:
-                nextcol = col + direction[1] * i
-                nextrow = row + direction[0] * i
-                if self.coordValid(nextcol, nextrow):
-                    #if next piece is the same colour, break
-                    if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
-                        break
-                        
-                    #if next piece is different colour, flip it
-                    else:
-                        board[nextrow][nextcol] = piece
-                        i += 1
-                else:
-                    break
+    def getValidMoves(self, board, colour):
+        moves = []
+        for row in range(8):
+            for col in range(8):
+                if board[row][col] == 0:
+                    valid, dir = self.isvalidmove(board, col, row, colour)
+                    if valid:
+                        moves.append([[col, row], dir])
+        return moves
+    
+    def displayBoard(self, board):
+        print("  0 1 2 3 4 5 6 7")
+        for i in range(8):
+            print(i, end = " ")
+            for j in range(8):
+                print(board[i][j], end = " ")
+            print()
+
+    def saveGame(self):
+        validchoice = False
+        while not validchoice:
+            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
+            if choice in [1,2,3]:
+                validchoice = True
+            elif choice == 4:
+                return None
+            else:
+                print("Invalid choice, try again")
+            
+        with open(f"game{choice}.txt", "w") as f:
+            f.write(f"{self.__Player1.getName()}\n")
+            f.write(f"{self.__Player2.getName()}\n")
+            f.write(f"{self.__Turn}\n")
+            f.write(f"{self.__p1time}\n")
+            f.write(f"{self.__p2time}\n")
+            for row in range(8):
+                for col in range(8):
+                    f.write(f"{self.__Board[row][col]}")
+                f.write("\n")
+            print("Game saved")             
+
+    def loadGame(self):
+        validchoice = False
+        while not validchoice:
+            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
+            if choice in [1,2,3]:
+                validchoice = True
+            elif choice == 4:
+                return None
+            else:
+                print("Invalid choice, try again")
+        
+        with open(f"game{choice}.txt", "r") as f:
+            self.__Player1.setName(f.readline().strip())
+            self.__Player2.setName(f.readline().strip())
+            self.__Turn = int(f.readline().strip())
+            self.__p1time = int(f.readline().strip())
+            self.__p2time = int(f.readline().strip())
+            for row in range(8):
+                line = f.readline().strip()
+                for col in range(8):
+                    self.__Board[row][col] = int(line[col])
 
     def minimax(self, board, depth, ismaximising):
         '''
@@ -637,8 +342,8 @@ class Othello:
             
             Does: Calculates the score of the board
         '''
-        validlocations = self.getValidMovesList(board, 2)
-        isfinished = (len(self.getValidMovesList(board, 1)) == 0) and (len(self.getValidMovesList(board, 2)) == 0)
+        validlocations = self.getValidMoves(board, 2)
+        isfinished = (len(self.getValidMoves(board, 1)) == 0) and (len(self.getValidMoves(board, 2)) == 0)
         if depth == 0 or isfinished:
             if isfinished:
                 # calculate who won that simulation
@@ -665,7 +370,7 @@ class Othello:
             move = random.choice(validlocations)
             for mov in validlocations:
                 b = copy.deepcopy(board)
-                self.doMoveList(2, b, mov[0], mov[1], mov[2])
+                self.playGame(b, mov[0], mov[1], 2, mov[2])
                 new_score = self.minimax(b, depth - 1, False)[1]
                 if new_score > value:
                     value = new_score
@@ -676,20 +381,23 @@ class Othello:
             col = random.choice(validlocations)
             for mov in validlocations:
                 b = copy.deepcopy(board)
-                self.doMoveList(1, b, mov[0], mov[1], mov[2])
+                self.playGame(b, mov[0], mov[1], 1, mov[2])
                 new_score = self.minimax(b, depth - 1, True)[1]
                 if new_score < value:
                     value = new_score
                     col = mov
             return col, value
-
-
-
-if __name__ == "__main__":
-    a = input("single player? (y/n): ")
-    if a == "y":
-        game = Othello(Player(input("Player 1 enter your name: ")), Player("computer"), 180, 1)
-        game.playGame(True)
-    else:
-        game = Othello(Player(input("Player 1 enter your name: ")), Player(input("Player 2 enter your name: ")), 180, 1)
-        game.playGame(False)
+        
+    def startGame():
+        x = input("1. 2 Player Game\n2. 1 Player Game\n3. Quit")
+        if x == "1":
+            game.twoPlayerGame()
+        elif x == "2":
+            game.onePlayerGame()
+        elif x == "3":
+            return None
+        
+    def getPieceAt(board, col, row):
+        return board[row][col]
+        
+game = Othello(Player("Player1"), Player("Player2"), int(input("How long on the timer, if you don't want a timer enter -1: ")), 1)
