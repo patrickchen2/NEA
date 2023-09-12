@@ -5,31 +5,8 @@ from computer import Computer
 import copy
 
 class Othello:
-    '''
-        Class: Othello
-        Attributes:
-            Board: a class Board that represents the board
-            Player1: a class Player that represents player 1
-            Player2: a class Player that represents player 2
-            Turn: an integer that represents the turn
-            movedirections: a list of lists that represents all the directions from a piece
-
-        Methods:
-            playGame
-            setupGame
-            willflip
-            isvalidmove
-            getvalidmoves
-            coordvalid
-            checkgameover
-            calculateWinner
-    '''
-
     def __init__(self, player1, player2, timer, turn):
-        '''
-            Initialises all the attributes of othello
-            takes the two players as parameters
-        '''
+
 
         self.__Board = [[0 for i in range(8)] for j in range(8)]
         self.__Player1 = player1
@@ -51,10 +28,12 @@ class Othello:
         while not self.checkgameover(self.__Board):
             self.displayBoard(self.__Board)
             choice = input("""
-            1. Play
-            2. Save
-            3. Load
-            4. Quit""")
+1. Play
+2. Save
+3. Load
+4. Quit
+
+""")
             if choice == "1":
                 if self.__Turn % 2 == 1:
                     print("White turn")
@@ -106,15 +85,16 @@ class Othello:
         self.__Player2.setDifficulty(int(input("Enter the difficulty of the computer (1-4): ")))
         while not self.checkgameover(self.__Board):
             self.displayBoard(self.__Board)
-            choice = input("""
-            1. Play
-            2. Save
-            3. Load
-            4. Quit""")
-            if choice == "1":
-                if self.__Turn % 2 == 1:
-                    print("White turn")
-                    
+            if self.__Turn % 2 == 1:
+                print("White turn")
+                choice = input("""
+1. Play
+2. Save
+3. Load
+4. Quit
+
+""")
+                if choice == "1":
                     valid = False
                     while not valid:
                         column = int(input("enter a column between 0 and 7: "))
@@ -123,30 +103,32 @@ class Othello:
                         if not valid:
                             print("Invalid move")
                     self.playGame(self.__Board, column, row, 1, dir)
-                else:
-                    print("Computer turn")
-                    move = self.getValidMoves(2)
-                    if self.__Player2.getDifficulty() == 1:
-                        #choose a random move from the list of valid moves
-                        computermove = random.choice(move)
-                    if self.__Player2.getDifficulty() == 2:
-                        #choose the move which flips the most pieces
-                        same = copy.deepcopy(self.__Board)
-                        print(same)
-                        maxflips = 0
-                        computermove = random.choice(move)
-                        for mov in move:
-                            curr_score = self.getWhiteScore(same)
-                            self.playGame(same, mov[0][0], mov[0][1], 2, mov[1])
-                            score_diff = self.getWhiteScore(same) - curr_score
-                            if score_diff > maxflips:
-                                maxflips = score_diff
-                                computermove = mov
-                            
-                    if self.__Player2.getDifficulty() == 3:
-                        computermove, score = self.minimax(self.__Board, 3, True)
-                        print(f"minimax score: {score}")
-                    self.playGame(self.__Board, computermove[0][0], computermove[0][1], 2, computermove[1])
+                    self.__Turn += 1
+            else:
+                print("Computer turn")
+                move = self.getValidMoves(self.__Board, 2)
+                if self.__Player2.getDifficulty() == 1:
+                    #choose a random move from the list of valid moves
+                    computermove = random.choice(move)
+                if self.__Player2.getDifficulty() == 2:
+                    #choose the move which flips the most pieces
+                    same = copy.deepcopy(self.__Board)
+                    print(same)
+                    maxflips = 0
+                    computermove = random.choice(move)
+                    for mov in move:
+                        curr_score = self.getWhiteScore(same)
+                        self.playGame(same, mov[0][0], mov[0][1], 2, mov[1])
+                        score_diff = self.getWhiteScore(same) - curr_score
+                        if score_diff > maxflips:
+                            maxflips = score_diff
+                            computermove = mov
+                        
+                if self.__Player2.getDifficulty() == 3:
+                    computermove, score = self.minimax(self.__Board, 3, True)
+                    print(f"minimax score: {score}")
+                self.playGame(self.__Board, computermove[0][0], computermove[0][1], 2, computermove[1])
+                self.__Turn += 1
     def setupGame(self,board):
         '''
             Method: setupGame
@@ -182,17 +164,30 @@ class Othello:
         return count
 
     def playGame(self, board,  col, row, colour, direction):
-        for dir in direction:
-            i = 1
-            while True:
-                nextrow = row + i*dir[0]
-                nextcol = col + i*dir[1]
-                if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
-                    break
-                else:
-                    board[nextrow][nextcol] = colour
-                    i+=1
-        board[row][col] = colour
+        if board:
+            for dir in direction:
+                i = 1
+                while True:
+                    nextrow = row + i*dir[0]
+                    nextcol = col + i*dir[1]
+                    if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
+                        break
+                    else:
+                        board[nextrow][nextcol] = colour
+                        i+=1
+            board[row][col] = colour
+        else:
+            for dir in direction:
+                i = 1
+                while True:
+                    nextrow = row + i*dir[0]
+                    nextcol = col + i*dir[1]
+                    if self.__Board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
+                        break
+                    else:
+                        self.__Board[nextrow][nextcol] = colour
+                        i+=1
+            self.__Board[row][col] = colour
 
     def calculateScore(self, board, colour):
         '''
@@ -388,16 +383,20 @@ class Othello:
                     col = mov
             return col, value
         
-    def startGame():
-        x = input("1. 2 Player Game\n2. 1 Player Game\n3. Quit")
-        if x == "1":
-            game.twoPlayerGame()
-        elif x == "2":
-            game.onePlayerGame()
+    def startGame(self):
+        x = input("1. 2 Player Game\n2. 1 Player Game\n3. Quit\n")
+        if x == "2":
+            self.twoPlayerGame()
+        elif x == "1":
+            self.onePlayerGame()
         elif x == "3":
             return None
         
     def getPieceAt(board, col, row):
         return board[row][col]
-        
-game = Othello(Player("Player1"), Player("Player2"), int(input("How long on the timer, if you don't want a timer enter -1: ")), 1)
+
+    def getBoard(self):
+        return self.__Board 
+
+    def getTurn(self):
+        return self.__Turn
