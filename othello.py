@@ -392,8 +392,8 @@ class Othello:
         elif x == "3":
             return None
         
-    def getPieceAt(board, col, row):
-        return board[row][col]
+    def getPieceAt(self, col, row):
+        self.__Board[row][col]
 
     def getBoard(self):
         return self.__Board 
