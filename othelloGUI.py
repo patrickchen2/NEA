@@ -2,7 +2,7 @@ import tkinter as tk
 from abc import ABC, abstractmethod
 from othello import Othello
 from player import Player
-
+import tkinter.messagebox as messagebox
 class UI(ABC):
     @abstractmethod
     def run(self):
@@ -82,8 +82,15 @@ class GUI(UI):
         except Exception as e:
             print(e)
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
-        self._game.playGame(self._game.getBoard(), x, y, colour, dir)
-        self._game.setTurn(1)
+        if valid:
+            self._game.playGame(self._game.getBoard(), x, y, colour, dir)
+            self._game.setTurn(1)
+        else:
+            messagebox.showinfo("Invalid Move", "Invalid Move")
+        if self._game.isGameOver(self._game.getBoard()):
+            self._game_win.destroy()
+            self._game_win = None
+            messagebox.showinfo("Game Over", "Game Over") 
         self.displayBoard(self._game_win)
     
     def run(self):
