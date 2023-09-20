@@ -15,22 +15,13 @@ class GUI(UI):
         self._game_win = None
         root = tk.Tk()
         root.title("Othello")
-        frame = tk.Frame(root)
-        frame.pack()
 
-        tk.Button(frame, text="Play", command=self.options).pack(fill=tk.X)
-        tk.Button(frame, text="Quit", command=root.quit).pack(fill=tk.X)
 
-        scroll = tk.Scrollbar(frame)
-        console = tk.Text(frame, height=4, width=50)
-        scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        console.pack(side=tk.LEFT, fill=tk.Y)
+        tk.Button(root, text="Play", command=self.options).grid(row=0, column=0)
+        tk.Button(root, text="Quit", command=root.quit).grid(row=0, column=1)
 
-        scroll.config(command=console.yview)
-        console.config(yscrollcommand=scroll.set)
 
         self._root = root
-        self._console = console
     
     def play(self):
         if self._game_win:
@@ -40,29 +31,37 @@ class GUI(UI):
         self._player2 = self.player2entry.get()
 
         self._game = Othello(self._player1, self._player2, self._timer, 1)
+        self._game.setupGame(None)
+        print(self._game.getBoard())
         self._finished = False
 
         game_win = tk.Toplevel(self._root)
         game_win.title("Othello")
         #game_win.geometry("500x500")
-        frame = tk.Frame(game_win)
 
         tk.Grid.rowconfigure(game_win, 0, weight=1)
         tk.Grid.columnconfigure(game_win, 0, weight=1)
-        frame.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
-        c = tk.Canvas(game_win, width=500, height=500, bg="dark green")
-        c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
+        self.c = tk.Canvas(game_win, width=800, height=800, bg="dark green")
+        self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
+        self.c.bind("<Button-1>", self.move)
+        self.displayBoard(game_win)
 
-        ratio = 500/8
+    def displayBoard(self, window):
+        ratio = 800/8
         for i in range(8):
-            c.create_line(0, i*ratio, 500, i*ratio)
-            c.create_line(i*ratio, 0, i*ratio, 500)
+            self.c.create_line(0, i*ratio, 800, i*ratio)
+            self.c.create_line(i*ratio, 0, i*ratio, 800)
 
-        c.create_oval(3*ratio, 3*ratio, 4*ratio, 4*ratio, fill="white")
-        c.create_oval(3*ratio, 4*ratio, 4*ratio, 5*ratio, fill="black")
-        c.create_oval(4*ratio, 3*ratio, 5*ratio, 4*ratio, fill="black")
-        c.create_oval(4*ratio, 4*ratio, 5*ratio, 5*ratio, fill="white")
-        c.bind("<Button-1>", self.move)
+        board = self._game.getBoard()
+        for row in range(8):
+            for col in range(8):
+                if board[row][col]:
+                    if board[row][col] == 1:
+                        self.c.create_oval(col*ratio, row*ratio, (col+1)*ratio, (row+1)*ratio, fill="black")
+                    else:
+                        self.c.create_oval(col*ratio, row*ratio, (col+1)*ratio, (row+1)*ratio, fill="white")
+
+
 
         
 
@@ -70,18 +69,23 @@ class GUI(UI):
         self._game_win.destroy()
         self._game_win = None
 
-    def move(self, row, col, event):
+    def move(self, event):
         if self._game.getTurn()%2 == 1:
             colour = 1
         else:
             colour = 2
         x,y = event.x, event.y
-        ratio = 500/8
-        # finding the nearest whole ratio for x and y
-        x = int(x//ratio)
-        y = int(y//ratio)
-        self._game.playGame(self._game.getTurn(), x, y, )
-
+        ratio = 800/8
+        try:
+            x = int(x//ratio)
+            y = int(y//ratio)
+        except Exception as e:
+            print(e)
+        valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
+        self._game.playGame(self._game.getBoard(), x, y, colour, dir)
+        self._game.setTurn(1)
+        self.displayBoard(self._game_win)
+    
     def run(self):
         self._root.mainloop()
 
@@ -91,22 +95,22 @@ class GUI(UI):
         newwindow.geometry("300x300")
         
         player1label = tk.Label(newwindow, text="Player 1: ")
-        player1label.pack()
+        player1label.grid(row=0, column=0)
         self.player1entry = tk.Entry(newwindow, width = 60)
-        self.player1entry.pack()
+        self.player1entry.grid(row=0, column=1)
 
         player2label = tk.Label(newwindow, text="Player 2: ")
-        player2label.pack()
+        player2label.grid(row=1, column=0)
         self.player2entry = tk.Entry(newwindow, width = 60)
-        self.player2entry.pack()
+        self.player2entry.grid(row=1, column=1)
         
         timerlabel = tk.Label(newwindow, text="timer (-1): ")
-        timerlabel.pack()
+        timerlabel.grid(row=2, column=0)
         self.timerentry = tk.Entry(newwindow, width = 60)
-        self.timerentry.pack()
+        self.timerentry.grid(row=2, column=1)
 
         nextbutton = tk.Button(newwindow, text="Next", command=self.play)
-        nextbutton.pack()
+        nextbutton.grid(row=3, column=0, columnspan=2)
         #timerlabel.grid(row=0, column=0)
         #timerentry.grid(row=0, column=1)
         #nextbutton.grid(row=1, column=0, columnspan=2)

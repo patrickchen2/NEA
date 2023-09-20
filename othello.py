@@ -136,15 +136,26 @@ class Othello:
             Returns: None
             Does: Sets up the game by placing the initial pieces
         '''
-        board[3][3] = 1
-        board[4][4] = 1
-        board[3][4] = 2
-        board[4][3] = 2
-        if self.__p1time == -1:
-            self.__isTimer = False
-        else:
-            self.__isTimer = True
-
+        try:
+            board[3][3] = 1
+            board[4][4] = 1
+            board[3][4] = 2
+            board[4][3] = 2
+            if self.__p1time == -1:
+                self.__isTimer = False
+            else:
+                self.__isTimer = True
+        except:
+            self.__Board = [[0 for i in range(8)] for j in range(8)]
+            self.__Board[3][3] = 1
+            self.__Board[4][4] = 1
+            self.__Board[3][4] = 2
+            self.__Board[4][3] = 2
+            if self.__p1time == -1:
+                self.__isTimer = False
+            else:
+                self.__isTimer = True
+            
     def getWhiteScore(self, board):
         count = 0
         for row in range(8):
@@ -384,7 +395,7 @@ class Othello:
             return col, value
         
     def startGame(self):
-        x = input("1. 2 Player Game\n2. 1 Player Game\n3. Quit\n")
+        x = input("1. 1 Player Game\n2. 2 Player Game\n3. Quit\n")
         if x == "2":
             self.twoPlayerGame()
         elif x == "1":
@@ -400,3 +411,6 @@ class Othello:
 
     def getTurn(self):
         return self.__Turn
+    
+    def setTurn(self, add):
+        self.__Turn += add
