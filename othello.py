@@ -16,6 +16,7 @@ class Othello:
         self.__isTimer = False
         self.__p1time = timer
         self.__p2time = timer
+        self.__Gamemode = 0
 
     def twoPlayerGame(self):
         '''
@@ -24,6 +25,7 @@ class Othello:
             Returns: None
             Does: Runs the game for two players
         '''
+        self.__Gamemode = 2
         self.setupGame(self.__Board)
         while not self.checkgameover(self.__Board):
             self.displayBoard(self.__Board)
@@ -70,7 +72,7 @@ class Othello:
                             print("Player 1 wins!")
                             return None
 
-                self.__Turn += 1
+                self.setTurn(1)
             elif choice == "2":
                 self.saveGame()
             elif choice == "3":
@@ -80,6 +82,13 @@ class Othello:
         self.calculateWinner()
 
     def onePlayerGame(self):
+        '''
+            Method: onePlayerGame
+            Parameters: None
+            Returns: None
+            Does: Runs the game for one player and one computer
+        '''
+        self.__Gamemode = 1
         self.setupGame(self.__Board)
         self.__Player2 = Computer("Computer")
         self.__Player2.setDifficulty(int(input("Enter the difficulty of the computer (1-4): ")))
@@ -103,7 +112,13 @@ class Othello:
                         if not valid:
                             print("Invalid move")
                     self.playGame(self.__Board, column, row, 1, dir)
-                    self.__Turn += 1
+                    self.setTurn(1)
+                elif choice == "2":
+                    self.saveGame()
+                elif choice == "3":
+                    self.loadGame()
+                elif choice == "4":
+                    return None
             else:
                 print("Computer turn")
                 move = self.getValidMoves(self.__Board, 2)
@@ -128,7 +143,10 @@ class Othello:
                     computermove, score = self.minimax(self.__Board, 3, True)
                     print(f"minimax score: {score}")
                 self.playGame(self.__Board, computermove[0][0], computermove[0][1], 2, computermove[1])
-                self.__Turn += 1
+                self.setTurn(1)
+        print("Game over, calculating winner")
+        self.calculateWinner()
+
     def setupGame(self,board):
         '''
             Method: setupGame
@@ -157,6 +175,12 @@ class Othello:
                 self.__isTimer = True
             
     def getWhiteScore(self, board):
+        '''
+            Method: getWhiteScore
+            Parameters: board
+            Returns: count
+            Does: Calculates the number of white pieces on the board
+        '''
         count = 0
         for row in range(8):
             for col in range(8):
@@ -166,6 +190,12 @@ class Othello:
         return count
     
     def getBlackScore(self, board):
+        '''
+            Method: getBlackScore
+            Parameters: board
+            Returns: count
+            Does: Calculates the number of black pieces on the board
+        '''
         count = 0
         for row in range(8):
             for col in range(8):
@@ -175,6 +205,12 @@ class Othello:
         return count
 
     def playGame(self, board,  col, row, colour, direction):
+        '''
+            Method: playGame
+            Parameters: board, col, row, colour, direction
+            Returns: None
+            Does: places a piece on the baord and flips the pieces
+        '''
         if board:
             for dir in direction:
                 i = 1
@@ -230,6 +266,12 @@ class Othello:
         return score
     
     def checkgameover(self, board):
+        '''
+            Method: checkgameover
+            Parameters: board
+            Returns: True or False
+            Does: Checks if there are any empty spaces left on a board
+        '''
         for row in range(8):
             for col in range(8):
                 if board[row][col] == 0:
@@ -237,6 +279,12 @@ class Othello:
         return True
     
     def calculateWinner(self):
+        '''
+            Method: calculateWinner
+            Parameters: None
+            Returns: None
+            Does: Calculates the winner of the game
+        '''
         white = 0
         black = 0
         for row in range(8):
@@ -254,6 +302,12 @@ class Othello:
             print("It's a tie!")
 
     def isvalidmove(self, board, col, row, colour):
+        '''
+            Method: isvalidmove
+            Parameters: board, col, row, colour
+            Returns: True or False
+            Does: Checks if a move is valid
+        '''
         valid = False
         moves = []
         for direction in self.__movedirections:
@@ -262,6 +316,12 @@ class Othello:
         return len(moves) > 0, moves
     
     def willFlip(self, board, col, row, direction, colour):
+        '''
+            Method: willFlip
+            Parameters: board, col, row, direction, colour
+            Returns: True or False
+            Does: Checks if a move will flip any pieces
+        '''
         i = 1
         while True:
             newcol = col + i*direction[1]
@@ -278,6 +338,12 @@ class Othello:
         return i > 1
     
     def getValidMoves(self, board, colour):
+        '''
+            Method: getValidMoves
+            Parameters: board, colour
+            Returns: moves
+            Does: Gets all the valid moves for a certain player along with directions
+        '''
         moves = []
         for row in range(8):
             for col in range(8):
@@ -288,6 +354,12 @@ class Othello:
         return moves
     
     def displayBoard(self, board):
+        '''
+            Method: displayBoard
+            Parameters: board
+            Returns: None
+            Does: Displays the board with the column and row numbers
+        '''
         print("  0 1 2 3 4 5 6 7")
         for i in range(8):
             print(i, end = " ")
@@ -296,6 +368,21 @@ class Othello:
             print()
 
     def saveGame(self):
+        '''
+            Method: saveGame
+            Parameters: None
+            Returns: None
+            Does: Saves the game to a file
+            
+            File Format:
+            player1
+            player2
+            gamemode
+            turn
+            p1time
+            p2time
+            board
+        '''
         validchoice = False
         while not validchoice:
             choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
@@ -309,6 +396,7 @@ class Othello:
         with open(f"game{choice}.txt", "w") as f:
             f.write(f"{self.__Player1.getName()}\n")
             f.write(f"{self.__Player2.getName()}\n")
+            f.write(f"{self.__Gamemode}\n")
             f.write(f"{self.__Turn}\n")
             f.write(f"{self.__p1time}\n")
             f.write(f"{self.__p2time}\n")
@@ -319,6 +407,21 @@ class Othello:
             print("Game saved")             
 
     def loadGame(self):
+        '''
+            Method: loadGame
+            Parameters: None
+            Returns: None
+            Does: Loads the game from a file
+            
+            File Format:
+            player1
+            player2
+            gamemode
+            turn
+            p1time
+            p2time
+            board
+        '''
         validchoice = False
         while not validchoice:
             choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
@@ -332,6 +435,7 @@ class Othello:
         with open(f"game{choice}.txt", "r") as f:
             self.__Player1.setName(f.readline().strip())
             self.__Player2.setName(f.readline().strip())
+            self.__Gamemode = int(f.readline().strip())
             self.__Turn = int(f.readline().strip())
             self.__p1time = int(f.readline().strip())
             self.__p2time = int(f.readline().strip())
@@ -339,6 +443,14 @@ class Othello:
                 line = f.readline().strip()
                 for col in range(8):
                     self.__Board[row][col] = int(line[col])
+
+        if self.__Gamemode == 1:
+            self.onePlayerGame()
+        elif self.__Gamemode == 2:
+            self.twoPlayerGame()
+        else:
+            print("Invalid gamemode")
+            return None
 
     def minimax(self, board, depth, ismaximising):
         '''
@@ -395,22 +507,54 @@ class Othello:
             return col, value
         
     def startGame(self):
-        x = input("1. 1 Player Game\n2. 2 Player Game\n3. Quit\n")
+        '''
+            Method: startGame
+            Parameters: None
+            Returns: None
+            Does: Starts the game
+        '''
+        x = input("1. 1 Player Game\n2. 2 Player Game\n3. Load Game\n4. Quit\n")
         if x == "2":
             self.twoPlayerGame()
         elif x == "1":
             self.onePlayerGame()
         elif x == "3":
+            self.loadGame()
+        elif x == "4":
             return None
         
     def getPieceAt(self, col, row):
-        self.__Board[row][col]
+        '''
+            Method: getPieceAt
+            Parameters: col, row
+            Returns: piece at that location
+            Does: Gets the piece at a certain location
+        '''
+        return self.__Board[row][col]
 
     def getBoard(self):
+        '''
+            Method: getBoard
+            Parameters: None
+            Returns: Board
+            Does: Gets the board
+        '''
         return self.__Board 
 
     def getTurn(self):
+        '''
+            Method: getTurn
+            Parameters: None
+            Returns: Turn
+            Does: Gets the turn
+        '''
         return self.__Turn
     
     def setTurn(self, add):
+        '''
+            Method: setTurn
+            Parameters: add
+            Returns: None
+            Does: changes the turn by add
+        '''
         self.__Turn += add
