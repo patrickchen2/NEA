@@ -26,11 +26,10 @@ class GUI(UI):
     def play(self):
         if self._game_win:
             return
-        self._timer = self.timerentry.get()
         self._player1 = self.player1entry.get()
         self._player2 = self.player2entry.get()
 
-        self._game = Othello(self._player1, self._player2, self._timer, 1)
+        self._game = Othello(self._player1, self._player2, 1)
         self._game.setupGame(None)
         print(self._game.getBoard())
         self._finished = False
@@ -44,6 +43,8 @@ class GUI(UI):
         self.c = tk.Canvas(game_win, width=800, height=800, bg="dark green")
         self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
         self.c.bind("<Button-1>", self.move)
+        self.t = tk.Text(game_win, height=2, width=30)
+        self.t.grid(row = 0, column = 1, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
         self.displayBoard(game_win)
 
     def displayBoard(self, window):
@@ -60,8 +61,6 @@ class GUI(UI):
                         self.c.create_oval(col*ratio, row*ratio, (col+1)*ratio, (row+1)*ratio, fill="black")
                     else:
                         self.c.create_oval(col*ratio, row*ratio, (col+1)*ratio, (row+1)*ratio, fill="white")
-
-
 
         
 
@@ -84,11 +83,16 @@ class GUI(UI):
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
         if valid:
             self._game.playGame(self._game.getBoard(), x, y, colour, dir)
+            if colour == 1:
+                self.t.insert(tk.END, "Player 1: " + str(x) + "," + str(y) + "\n")
+            elif colour == 2:
+                self.t.insert(tk.END, "Player 2: " + str(x) + "," + str(y) + "\n")
             self._game.setTurn(1)
         else:
-            messagebox.showinfo("Invalid Move", "Invalid Move")
-        if self._game.isGameOver(self._game.getBoard()):
-            self._game_win.destroy()
+            #messagebox.showinfo("Invalid Move", "Invalid Move")
+            pass
+        if self._game.checkgameover(self._game.getBoard()):
+            self.gameClose()
             self._game_win = None
             messagebox.showinfo("Game Over", "Game Over") 
         self.displayBoard(self._game_win)
@@ -110,17 +114,9 @@ class GUI(UI):
         player2label.grid(row=1, column=0)
         self.player2entry = tk.Entry(newwindow, width = 60)
         self.player2entry.grid(row=1, column=1)
-        
-        timerlabel = tk.Label(newwindow, text="timer (-1): ")
-        timerlabel.grid(row=2, column=0)
-        self.timerentry = tk.Entry(newwindow, width = 60)
-        self.timerentry.grid(row=2, column=1)
 
         nextbutton = tk.Button(newwindow, text="Next", command=self.play)
-        nextbutton.grid(row=3, column=0, columnspan=2)
-        #timerlabel.grid(row=0, column=0)
-        #timerentry.grid(row=0, column=1)
-        #nextbutton.grid(row=1, column=0, columnspan=2)
+        nextbutton.grid(row=2, column=0, columnspan=2)
 
         
 

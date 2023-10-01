@@ -5,7 +5,7 @@ from computer import Computer
 import copy
 
 class Othello:
-    def __init__(self, player1, player2, timer, turn):
+    def __init__(self, player1, player2, turn):
 
 
         self.__Board = [[0 for i in range(8)] for j in range(8)]
@@ -13,9 +13,6 @@ class Othello:
         self.__Player2 = player2
         self.__Turn = turn
         self.__movedirections = [[-1,1], [0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0]]
-        self.__isTimer = False
-        self.__p1time = timer
-        self.__p2time = timer
         self.__Gamemode = 0
 
     def twoPlayerGame(self):
@@ -38,8 +35,7 @@ class Othello:
 """)
             if choice == "1":
                 if self.__Turn % 2 == 1:
-                    print("White turn")
-                    currtime = time.time()
+                    print(f"White ({self.__Player1.getName()}) turn")
                     valid = False
                     while not valid:
                         column = int(input("enter a column between 0 and 7: "))
@@ -48,15 +44,8 @@ class Othello:
                         if not valid:
                             print("Invalid move")
                     self.playGame(self.__Board, column, row, 1, dir)
-                    if self.__isTimer:
-                        self.__p1time -= time.time() - currtime
-                        if self.__p1time <= 0:
-                            print("Player 1 ran out of time")
-                            print("Player 2 wins!")
-                            return None
                 else:
-                    print("Black turn")
-                    currtime = time.time()
+                    print(f"Black ({self.__Player2.getName()}) turn")
                     valid = False
                     while not valid:
                         column = int(input("enter a column between 0 and 7: "))
@@ -65,12 +54,6 @@ class Othello:
                         if not valid:
                             print("Invalid move")
                     self.playGame(self.__Board, column, row, 2, dir)
-                    if self.__isTimer:
-                        self.__p2time -= time.time() - currtime
-                        if self.__p2time <= 0:
-                            print("Player 2 ran out of time")
-                            print("Player 1 wins!")
-                            return None
 
                 self.setTurn(1)
             elif choice == "2":
@@ -95,7 +78,7 @@ class Othello:
         while not self.checkgameover(self.__Board):
             self.displayBoard(self.__Board)
             if self.__Turn % 2 == 1:
-                print("White turn")
+                print(f"White ({self.__Player1.getName()}) turn")
                 choice = input("""
 1. Play
 2. Save
@@ -159,20 +142,12 @@ class Othello:
             board[4][4] = 1
             board[3][4] = 2
             board[4][3] = 2
-            if self.__p1time == -1:
-                self.__isTimer = False
-            else:
-                self.__isTimer = True
         except:
             self.__Board = [[0 for i in range(8)] for j in range(8)]
             self.__Board[3][3] = 1
             self.__Board[4][4] = 1
             self.__Board[3][4] = 2
             self.__Board[4][3] = 2
-            if self.__p1time == -1:
-                self.__isTimer = False
-            else:
-                self.__isTimer = True
             
     def getWhiteScore(self, board):
         '''
@@ -217,11 +192,14 @@ class Othello:
                 while True:
                     nextrow = row + i*dir[0]
                     nextcol = col + i*dir[1]
-                    if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
+                    try:
+                        if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
+                            break
+                        else:
+                            board[nextrow][nextcol] = colour
+                            i+=1
+                    except:
                         break
-                    else:
-                        board[nextrow][nextcol] = colour
-                        i+=1
             board[row][col] = colour
         else:
             for dir in direction:
@@ -229,11 +207,14 @@ class Othello:
                 while True:
                     nextrow = row + i*dir[0]
                     nextcol = col + i*dir[1]
-                    if self.__Board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
+                    try:
+                        if self.__Board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
+                            break
+                        else:
+                            self.__Board[nextrow][nextcol] = colour
+                            i+=1
+                    except:
                         break
-                    else:
-                        self.__Board[nextrow][nextcol] = colour
-                        i+=1
             self.__Board[row][col] = colour
 
     def calculateScore(self, board, colour):
@@ -326,7 +307,7 @@ class Othello:
         while True:
             newcol = col + i*direction[1]
             newrow = row + i*direction[0]
-            if 0<=newcol<=7 and 0<=newrow<=7:
+            if self.coordValid(newrow, newcol):
                 if board[newrow][newcol] == 0:
                     return False
                 elif board[newrow][newcol] == colour:
@@ -558,3 +539,12 @@ class Othello:
             Does: changes the turn by add
         '''
         self.__Turn += add
+
+    def coordValid(self, row, col):
+        '''
+            Method: coordValid
+            Parameters: row, col
+            Returns: True or False
+            Does: Checks if a coordinate is valid
+        '''
+        return 0<=row<=7 and 0<=col<=7
