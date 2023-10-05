@@ -13,6 +13,7 @@ class GUI(UI):
         self.timerentry = -1
         self.help_win = None
         self._game_win = None
+        self.boards = []
         root = tk.Tk()
         root.title("Othello")
 
@@ -31,27 +32,31 @@ class GUI(UI):
 
         self._game = Othello(self._player1, self._player2, 1)
         self._game.setupGame(None)
-        print(self._game.getBoard())
+        self.boards.append(self._game.getBoard())
         self._finished = False
 
-        game_win = tk.Toplevel(self._root)
-        game_win.title("Othello")
+        self._game_win = tk.Toplevel(self._root)
+        self._game_win.title("Othello")
         #game_win.geometry("500x500")
-
-        tk.Grid.rowconfigure(game_win, 0, weight=1)
-        tk.Grid.columnconfigure(game_win, 0, weight=1)
-        self.c = tk.Canvas(game_win, width=800, height=800, bg="dark green")
+        
+        self.canvassize = 700
+        tk.Grid.rowconfigure(self._game_win, 0, weight=1)
+        tk.Grid.columnconfigure(self._game_win, 0, weight=1)
+        self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg="dark green")
         self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
         self.c.bind("<Button-1>", self.move)
-        self.t = tk.Text(game_win, height=2, width=30)
+        self.t = tk.Text(self._game_win, height=2, width=30)
         self.t.grid(row = 0, column = 1, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
-        self.displayBoard(game_win)
+        self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
+        self.quitbutton.grid(row=1, column=0, columnspan=5)
+
+        self.displayBoard(self._game_win)
 
     def displayBoard(self, window):
-        ratio = 800/8
+        ratio = self.canvassize/8
         for i in range(8):
-            self.c.create_line(0, i*ratio, 800, i*ratio)
-            self.c.create_line(i*ratio, 0, i*ratio, 800)
+            self.c.create_line(0, i*ratio, self.canvassize, i*ratio)
+            self.c.create_line(i*ratio, 0, i*ratio, self.canvassize)
 
         board = self._game.getBoard()
         for row in range(8):
@@ -65,8 +70,8 @@ class GUI(UI):
         
 
     def gameClose(self):
-        self._game_win.destroy()
-        self._game_win = None
+        self._game_win.quit()
+
 
     def move(self, event):
         if self._game.getTurn()%2 == 1:
@@ -74,7 +79,7 @@ class GUI(UI):
         else:
             colour = 2
         x,y = event.x, event.y
-        ratio = 800/8
+        ratio = self.canvassize/8
         try:
             x = int(x//ratio)
             y = int(y//ratio)
@@ -93,8 +98,9 @@ class GUI(UI):
             pass
         if self._game.checkgameover(self._game.getBoard()):
             self.gameClose()
-            self._game_win = None
+            game_win = None
             messagebox.showinfo("Game Over", "Game Over") 
+        self.boards.append(self._game.getBoard())
         self.displayBoard(self._game_win)
     
     def run(self):

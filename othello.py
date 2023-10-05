@@ -313,7 +313,10 @@ class Othello:
                 elif board[newrow][newcol] == colour:
                     break
                 else:
-                    i += 1
+                    if self.coordValid(newrow + direction[0], newcol + direction[1]):
+                        i += 1
+                    else:
+                        return False
             else:
                 break
         return i > 1
