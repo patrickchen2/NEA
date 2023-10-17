@@ -10,7 +10,6 @@ class UI(ABC):
     
 class GUI(UI):
     def __init__(self):
-        self.timerentry = -1
         self.help_win = None
         self._game_win = None
         self.boards = []

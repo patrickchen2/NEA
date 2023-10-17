@@ -123,7 +123,7 @@ class Othello:
                             computermove = mov
                         
                 if self.__Player2.getDifficulty() == 3:
-                    computermove, score = self.minimax(self.__Board, 3, True)
+                    computermove, score = self.minimax(self.__Board, 3, True, 2)
                     print(f"minimax score: {score}")
                 self.playGame(self.__Board, computermove[0][0], computermove[0][1], 2, computermove[1])
                 self.setTurn(1)
@@ -253,11 +253,9 @@ class Othello:
             Returns: True or False
             Does: Checks if there are any empty spaces left on a board
         '''
-        for row in range(8):
-            for col in range(8):
-                if board[row][col] == 0:
-                    return False
-        return True
+        if len(self.getValidMoves(board, 1)) == 0 and len(self.getValidMoves(board, 2)) == 0:
+            return True
+        return False
     
     def calculateWinner(self):
         '''
@@ -436,15 +434,15 @@ class Othello:
             print("Invalid gamemode")
             return None
 
-    def minimax(self, board, depth, ismaximising):
+    def minimax(self, board, depth, ismaximising, startingcolour):
         '''
             Method: minimax
             Parameters: board, depth, ismaximising
             Returns: score
             
             Does: Calculates the score of the board
-        '''
-        validlocations = self.getValidMoves(board, 2)
+        '''  
+  
         isfinished = (len(self.getValidMoves(board, 1)) == 0) and (len(self.getValidMoves(board, 2)) == 0)
         if depth == 0 or isfinished:
             if isfinished:
@@ -459,36 +457,42 @@ class Othello:
                             whitecount += 1
                 
                 if whitecount > blackcount:
-                    return None, 100000000000000
-                elif blackcount > whitecount:
+                    if startingcolour == 1:
+                        return None, 100000000000000
                     return None, -10000000000000
+                elif blackcount > whitecount:
+                    if startingcolour == 1:
+                        return None, -10000000000000
+                    return None, 100000000000000
                 else:
                     return None, 0
             else:
                 return None, self.calculateScore(board, 2)
             
         if ismaximising:
+            validlocations = self.getValidMoves(board, startingcolour)
             value = -100000000000000
             move = random.choice(validlocations)
             for mov in validlocations:
                 b = copy.deepcopy(board)
                 self.playGame(b, mov[0], mov[1], 2, mov[2])
-                new_score = self.minimax(b, depth - 1, False)[1]
+                new_score = self.minimax(b, depth - 1, False, 2)[1]
                 if new_score > value:
                     value = new_score
                     move = mov
             return move, value
         else:
+            validlocations = self.getValidMoves(board, (startingcolour + 1)%2)
             value = 100000000000000
             col = random.choice(validlocations)
             for mov in validlocations:
                 b = copy.deepcopy(board)
                 self.playGame(b, mov[0], mov[1], 1, mov[2])
-                new_score = self.minimax(b, depth - 1, True)[1]
+                new_score = self.minimax(b, depth - 1, True, 2)[1]
                 if new_score < value:
                     value = new_score
-                    col = mov
-            return col, value
+                    move = mov
+            return move, value
         
     def startGame(self):
         '''
