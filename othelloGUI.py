@@ -32,6 +32,7 @@ class GUI(UI):
         self._game = Othello(self._player1, self._player2, 1)
         self._game.setupGame(None)
         self.boards.append(self._game.getBoard())
+        print(self.boards)
         self._finished = False
 
         self._game_win = tk.Toplevel(self._root)
@@ -46,10 +47,23 @@ class GUI(UI):
         self.c.bind("<Button-1>", self.move)
         self.t = tk.Text(self._game_win, height=2, width=30)
         self.t.grid(row = 0, column = 1, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
+        self.undobutton = tk.Button(self._game_win, text="Undo", command=self.undo)
+        self.undobutton.grid(row=1, column=0)
         self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
-        self.quitbutton.grid(row=1, column=0, columnspan=5)
-
+        self.quitbutton.grid(row=2, column=0, columnspan=5)
         self.displayBoard(self._game_win)
+
+
+    def undo(self):
+        if len(self.boards) > 1:
+            self.boards.pop(-1)
+            self._game.__Board = self.boards[-1]
+            self._game.setTurn(-1)
+            self.displayBoard(self._game_win)
+        else:
+            messagebox.showinfo("Invalid Move", "Invalid Move")
+            self.displayBoard(self._game_win)
+
 
     def displayBoard(self, window):
         ratio = self.canvassize/8
@@ -100,6 +114,7 @@ class GUI(UI):
             game_win = None
             messagebox.showinfo("Game Over", "Game Over") 
         self.boards.append(self._game.getBoard())
+        print(self.boards)
         self.displayBoard(self._game_win)
     
     def run(self):
