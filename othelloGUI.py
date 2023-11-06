@@ -32,7 +32,6 @@ class GUI(UI):
         self._game = Othello(self._player1, self._player2, 1)
         self._game.setupGame(None)
         self.boards.append(self._game.getBoard())
-        print(self.boards)
         self._finished = False
 
         self._game_win = tk.Toplevel(self._root)
@@ -55,14 +54,13 @@ class GUI(UI):
 
 
     def undo(self):
-        if len(self.boards) > 1:
-            self.boards.pop(-1)
-            self._game.__Board = self.boards[-1]
-            self._game.setTurn(-1)
+        if self.boards != []:
+            self.boards.pop()
+            self._game.setBoard(self.boards[-1])
+            print(self._game.getBoard() == self.boards[-1])
+            self.c.delete("all")
             self.displayBoard(self._game_win)
-        else:
-            messagebox.showinfo("Invalid Move", "Invalid Move")
-            self.displayBoard(self._game_win)
+
 
 
     def displayBoard(self, window):
@@ -70,6 +68,11 @@ class GUI(UI):
         for i in range(8):
             self.c.create_line(0, i*ratio, self.canvassize, i*ratio)
             self.c.create_line(i*ratio, 0, i*ratio, self.canvassize)
+        #getting the borders of the board
+        self.c.create_line(0, self.canvassize, self.canvassize, self.canvassize)
+        self.c.create_line(0, 0, 0, self.canvassize)
+        self.c.create_line(self.canvassize, 0, self.canvassize, self.canvassize)
+        self.c.create_line(0, 0, self.canvassize, 0)
 
         board = self._game.getBoard()
         for row in range(8):
@@ -79,7 +82,6 @@ class GUI(UI):
                         self.c.create_oval(col*ratio, row*ratio, (col+1)*ratio, (row+1)*ratio, fill="black")
                     else:
                         self.c.create_oval(col*ratio, row*ratio, (col+1)*ratio, (row+1)*ratio, fill="white")
-
         
 
     def gameClose(self):
@@ -102,19 +104,19 @@ class GUI(UI):
         if valid:
             self._game.playGame(self._game.getBoard(), x, y, colour, dir)
             if colour == 1:
-                self.t.insert(tk.END, "Player 1: " + str(x) + "," + str(y) + "\n")
+                self.t.insert(tk.END, self._player1 + ": " + str(x) + "," + str(y) + "\n")
             elif colour == 2:
-                self.t.insert(tk.END, "Player 2: " + str(x) + "," + str(y) + "\n")
+                self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
             self._game.setTurn(1)
+            self.boards.append(self._game.getBoard())
+            print(self.boards)
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
         if self._game.checkgameover(self._game.getBoard()):
             self.gameClose()
             game_win = None
-            messagebox.showinfo("Game Over", "Game Over") 
-        self.boards.append(self._game.getBoard())
-        print(self.boards)
+            messagebox.showinfo("Game Over", "Game Over")    
         self.displayBoard(self._game_win)
     
     def run(self):
