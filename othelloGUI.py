@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from othello import Othello
 from player import Player
 import tkinter.messagebox as messagebox
+import copy
 class UI(ABC):
     @abstractmethod
     def run(self):
@@ -12,7 +13,7 @@ class GUI(UI):
     def __init__(self):
         self.help_win = None
         self._game_win = None
-        self.boards = []
+        self.__boards = []
         root = tk.Tk()
         root.title("Othello")
 
@@ -30,8 +31,8 @@ class GUI(UI):
         self._player2 = self.player2entry.get()
 
         self._game = Othello(self._player1, self._player2, 1)
-        self._game.setupGame(None)
-        self.boards.append(self._game.getBoard())
+        self._game.setupGame()
+        self.__boards.append(copy.deepcopy(self._game.getBoard()))
         self._finished = False
 
         self._game_win = tk.Toplevel(self._root)
@@ -46,22 +47,11 @@ class GUI(UI):
         self.c.bind("<Button-1>", self.move)
         self.t = tk.Text(self._game_win, height=2, width=30)
         self.t.grid(row = 0, column = 1, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
-        self.undobutton = tk.Button(self._game_win, text="Undo", command=self.undo)
-        self.undobutton.grid(row=1, column=0)
+        self.u = tk.Button(self._game_win, text = "Undo", command = self.undo)
+        self.u.grid(row=1, column=0, columnspan=5)
         self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
         self.quitbutton.grid(row=2, column=0, columnspan=5)
         self.displayBoard(self._game_win)
-
-
-    def undo(self):
-        if self.boards != []:
-            self.boards.pop()
-            self._game.setBoard(self.boards[-1])
-            print(self._game.getBoard() == self.boards[-1])
-            self.c.delete("all")
-            self.displayBoard(self._game_win)
-
-
 
     def displayBoard(self, window):
         ratio = self.canvassize/8
@@ -87,6 +77,15 @@ class GUI(UI):
     def gameClose(self):
         self._game_win.quit()
 
+    def undo(self):
+        if len(self.__boards) > 1:
+            self.__boards.pop()
+            self._game.setBoard(copy.deepcopy(self.__boards[-1]))
+            self._game.setTurn(-1)
+            self.c.delete("all")
+            self.displayBoard(self._game_win)
+        else:
+            pass
 
     def move(self, event):
         if self._game.getTurn()%2 == 1:
@@ -102,14 +101,13 @@ class GUI(UI):
             print(e)
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
         if valid:
-            self._game.playGame(self._game.getBoard(), x, y, colour, dir)
+            self._game.playGame(None, x, y, colour, dir)
             if colour == 1:
                 self.t.insert(tk.END, self._player1 + ": " + str(x) + "," + str(y) + "\n")
             elif colour == 2:
                 self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
+            self.__boards.append(copy.deepcopy(self._game.getBoard()))
             self._game.setTurn(1)
-            self.boards.append(self._game.getBoard())
-            print(self.boards)
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
@@ -140,6 +138,8 @@ class GUI(UI):
         nextbutton = tk.Button(newwindow, text="Next", command=self.play)
         nextbutton.grid(row=2, column=0, columnspan=2)
 
+
+    
         
 
 

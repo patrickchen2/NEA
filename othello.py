@@ -77,7 +77,6 @@ class Othello:
                 while True:
                     nextrow = row + i*dir[0]
                     nextcol = col + i*dir[1]
-                    print(nextrow, nextcol)
                     try:
                         if board[nextrow][nextcol] == colour or board[nextrow][nextcol] == 0:
                             break
