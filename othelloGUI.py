@@ -112,6 +112,7 @@ class GUI(UI):
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
         if self._game.checkgameover(self._game.getBoard()):
+            self.displayBoard(self._game_win)
             self.gameClose()
             game_win = None
             messagebox.showinfo("Game Over", "Game Over")    

@@ -103,7 +103,7 @@ class terminal():
             else:
                 print("Computer turn")
                 move = self.__game.getValidMoves(self.__game.getBoard(), 2)
-                print(self.__game.getDifficulty())
+                #print(self.__game.getDifficulty())
                 if self.__game.getDifficulty() == 1:
                     #choose a random move from the list of valid moves
                     computermove = random.choice(move)

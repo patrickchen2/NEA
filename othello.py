@@ -342,11 +342,13 @@ class Othello:
             
         if ismaximising:
             validlocations = self.getValidMoves(board, startingcolour)
+            print(validlocations)
             value = -100000000000000
             move = random.choice(validlocations)
+            print(move)
             for mov in validlocations:
                 b = copy.deepcopy(board)
-                self.playGame(b, mov[0], mov[1], 2, mov[2])
+                self.playGame(b, mov[0][0], mov[0][1], 2, mov[1])
                 new_score = self.minimax(b, depth - 1, False, 2)[1]
                 if new_score > value:
                     value = new_score
@@ -358,7 +360,7 @@ class Othello:
             col = random.choice(validlocations)
             for mov in validlocations:
                 b = copy.deepcopy(board)
-                self.playGame(b, mov[0], mov[1], 1, mov[2])
+                self.playGame(b, mov[0][0], mov[0][1], 1, mov[1])
                 new_score = self.minimax(b, depth - 1, True, 2)[1]
                 if new_score < value:
                     value = new_score
