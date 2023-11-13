@@ -451,6 +451,15 @@ class Othello:
         except:
             return None
         
+    def setDifficult(self, difficulty):
+        '''
+            Method: setDifficult
+            Parameters: None
+            Returns: None
+            Does: Sets the difficulty
+        '''
+        self.__Player2.setDifficulty(difficulty)
+     
     def getGamemode(self):
         '''
             Method: getGamemode
