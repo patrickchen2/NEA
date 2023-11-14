@@ -122,7 +122,7 @@ class terminal():
                             computermove = mov
                         
                 if self.__game.getDifficulty() == 3:
-                    computermove, score = self.__game.minimax(self.__game.getBoard(), 3, True, 2)
+                    computermove, score = self.__game.minimax(self.__game.getBoard(), 3, True, 2, -100000, 100000)
                     print(f"minimax score: {score}")
                 self.__game.playGame(None, computermove[0][1], computermove[0][0], 2, computermove[1])
                 self.__game.setTurn(1)

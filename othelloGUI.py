@@ -90,7 +90,7 @@ class GUI(UI):
             else:
                 validlocations = self._game.getValidMoves(board, 2)
             for location in validlocations:
-                self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="yellow")
+                self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
 
     def gameClose(self):
         self._game_win.quit()
@@ -100,6 +100,8 @@ class GUI(UI):
             self.__boards.pop()
             self._game.setBoard(copy.deepcopy(self.__boards[-1]))
             self._game.setTurn(-1)
+            if self._game.getGamemode() == 1:
+                self._game.setTurn(-1)
             if self._game.getTurn()%2 == 1:
                 self.indicator.config(text="Black's Turn")
             else:
@@ -221,6 +223,7 @@ class GUI(UI):
         self._game = Othello(self._player1, Computer(self._player2), 1)
         self._game.setDifficult(self._difficulty)
         self._game.setupGame()
+        self._game.setGamemode(1)
         self.__boards.append(copy.deepcopy(self._game.getBoard()))
         self._finished = False
 
@@ -243,10 +246,23 @@ class GUI(UI):
 
         self.u = tk.Button(self._game_win, text = "Undo", command = self.undo)
         self.u.grid(row=1, column=0, columnspan=5)
+
         self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
         self.quitbutton.grid(row=2, column=0, columnspan=5)
+
+        self.savebutton = tk.Button(self._game_win, text="Save", command=self.saveGame)
+        self.savebutton.grid(row=1, column=1, columnspan=2)
+
+        self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
+        self.loadbutton.grid(row=1, column=3, columnspan=2)
         self.displayBoard(self._game_win)
+
+    def saveGame(self):
+        savewindow = tk.Toplevel(self._game_win)
+        savewindow.title("Save Game")
+        savewindow.geometry("300x300")
         
+
     def move2(self, event):
         if self._game.getTurn()%2 == 1:
             colour = 1
@@ -267,7 +283,9 @@ class GUI(UI):
             self.indicator.config(text="Computer Turn")
 
             self.displayBoard(self._game_win)
-            
+
+            self._root.update()
+            self._root.update_idletasks()
             #computer's turn
             if colour == 1:
                 computercolour = 2
@@ -277,13 +295,14 @@ class GUI(UI):
             print(computermove)
             self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
             self.__boards.append(copy.deepcopy(self._game.getBoard()))
-
-            time.sleep(1)
+            
+            if self._game.getDifficulty() == 1:
+                time.sleep(0.5)
 
             self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
             self.indicator.config(text="Player 1 Turn")
             self._game.setTurn(2)
-
+            self.displayBoard(self._game_win)
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
@@ -294,7 +313,6 @@ class GUI(UI):
             messagebox.showinfo("Game Over", "Game Over")      
     
     def computermove(self):
-        print("Computer turn")
         move = self._game.getValidMoves(self._game.getBoard(), 2)
         #print(self.__game.getDifficulty())
         if self._game.getDifficulty() == 1:
@@ -303,7 +321,6 @@ class GUI(UI):
         if self._game.getDifficulty() == 2:
             #choose the move which flips the most pieces
             same = copy.deepcopy(self._game.getBoard())
-            print(same)
             maxflips = 0
             computermove = random.choice(move)
             for mov in move:
@@ -315,7 +332,7 @@ class GUI(UI):
                     computermove = mov
                 
         if self._game.getDifficulty() == 3:
-            computermove, score = self._game.minimax(self._game.getBoard(), 3, True, 2)
+            computermove, score = self._game.minimax(self._game.getBoard(), 3, True, 2, -100000, 100000)
             print(f"minimax score: {score}")
         return computermove
 
