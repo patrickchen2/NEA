@@ -239,8 +239,6 @@ class Othello:
             player2
             gamemode
             turn
-            p1time
-            p2time
             board
         '''
         validchoice = False
@@ -258,8 +256,6 @@ class Othello:
             f.write(f"{self.__Player2.getName()}\n")
             f.write(f"{self.__Gamemode}\n")
             f.write(f"{self.__Turn}\n")
-            f.write(f"{self.__p1time}\n")
-            f.write(f"{self.__p2time}\n")
             for row in range(8):
                 for col in range(8):
                     f.write(f"{self.__Board[row][col]}")
@@ -297,8 +293,6 @@ class Othello:
             self.__Player2.setName(f.readline().strip())
             self.__Gamemode = int(f.readline().strip())
             self.__Turn = int(f.readline().strip())
-            self.__p1time = int(f.readline().strip())
-            self.__p2time = int(f.readline().strip())
             for row in range(8):
                 line = f.readline().strip()
                 for col in range(8):
@@ -442,6 +436,24 @@ class Othello:
             Does: Gets the player2 name
         '''
         return self.__Player2.getName()
+    
+    def setPlayer1(self,playername):
+        '''
+            Method: setPlayer1
+            Parameters: None
+            Returns: None
+            Does: Sets the player1 name
+        '''
+        self.__Player1.setName(playername)
+    
+    def setPlayer2(self,playername):
+        '''
+            Method: setPlayer2
+            Parameters: None
+            Returns: None
+            Does: Sets the player2 name
+        '''
+        self.__Player2.setName(playername)
     
     def getDifficulty(self):
         '''

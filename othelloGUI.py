@@ -107,6 +107,7 @@ class GUI(UI):
             else:
                 self.indicator.config(text="White's Turn")
             self.c.delete("all")
+            self.t.insert(tk.END, "Undo\n")
             self.displayBoard(self._game_win)
         else:
             pass
@@ -220,7 +221,7 @@ class GUI(UI):
         except:
             self._difficulty = 1
         
-        self._game = Othello(self._player1, Computer(self._player2), 1)
+        self._game = Othello(Player(self._player1), Computer(self._player2), 1)
         self._game.setDifficult(self._difficulty)
         self._game.setupGame()
         self._game.setGamemode(1)
@@ -254,7 +255,7 @@ class GUI(UI):
         self.savebutton.grid(row=1, column=1, columnspan=2)
 
         self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
-        self.loadbutton.grid(row=1, column=3, columnspan=2)
+        self.loadbutton.grid(row=1, column=2, columnspan=2)
         self.displayBoard(self._game_win)
 
     def saveGame(self):
@@ -262,6 +263,66 @@ class GUI(UI):
         savewindow.title("Save Game")
         savewindow.geometry("300x300")
         
+        savenumberlabel = tk.Label(savewindow, text="Save Number: ")
+        savenumberlabel.grid(row=0, column=0)
+        self.savenumberentry = tk.Entry(savewindow, width = 60)
+        self.savenumberentry.grid(row=0, column=1)
+
+        savebutton = tk.Button(savewindow, text="Save", command=self.save)
+        savebutton.grid(row=1, column=0, columnspan=2)
+        
+    def save(self):
+        try:
+            savenumber = int(self.savenumberentry.get())
+        except:
+            messagebox.showinfo("Invalid Save Number", "Invalid Save Number")
+
+        with open(f"game{savenumber}.txt", "w") as f:
+            f.write(f"{self._game.getPlayer1Name()}\n")
+            f.write(f"{self._game.getPlayer2Name()}\n")
+            f.write(f"{self._game.getGamemode()}\n")
+            f.write(f"{self._game.getTurn()}\n")
+
+            for row in range(8):
+                for col in range(8):
+                    f.write(f"{self._game.getBoard()[row][col]}")
+                f.write("\n")
+
+    def loadGame(self):
+        loadwindow = tk.Toplevel(self._game_win)
+        loadwindow.title("Load Game")
+        loadwindow.geometry("300x300")
+        
+        loadnumberlabel = tk.Label(loadwindow, text="Load Number: ")
+        loadnumberlabel.grid(row=0, column=0)
+        self.loadnumberentry = tk.Entry(loadwindow, width = 60)
+        self.loadnumberentry.grid(row=0, column=1)
+
+        loadbutton = tk.Button(loadwindow, text="Load", command=self.load)
+        loadbutton.grid(row=1, column=0, columnspan=2)
+    
+    def load(self):
+        try:
+            loadnumber = int(self.loadnumberentry.get())
+        except:
+            messagebox.showinfo("Invalid Load Number", "Invalid Load Number")
+
+        with open(f"game{loadnumber}.txt", "r") as f:
+            self._game.setPlayer1(f.readline().strip())
+            self._game.setPlayer2(f.readline().strip())
+            self._game.setGamemode(int(f.readline().strip()))
+            self._game.setTurn(int(f.readline().strip())-1)
+            board = []
+            for row in range(8):
+                board.append([])
+                for col in range(8):
+                    board[row].append(int(f.read(1)))
+                f.read(1)
+        
+        self._game.setBoard(board)
+        self.__boards = [copy.deepcopy(self._game.getBoard())]
+        self.t.delete("1.0", tk.END)
+        self.displayBoard(self._game_win)
 
     def move2(self, event):
         if self._game.getTurn()%2 == 1:
