@@ -3,11 +3,12 @@ from player import Player
 from computer import Computer
 import random
 import copy
+from othelloGUI import UI
 
-class terminal():
+class terminal(UI):
     def __init__(self, player1, player2):
+        super().__init__()
         self.__game = Othello(Player(player1), Player(player2), 1)
-        pass
     def twoPlayerGame(self):
         """
             Method: twoPlayerGame
@@ -28,7 +29,7 @@ class terminal():
                            """)
             if choice == "1":
                 if self.__game.getTurn() % 2 == 1:
-                    print(f"White ({self.__game.getPlayer1Name()}) turn")
+                    print(f"Black ({self.__game.getPlayer1Name()}) turn")
                     valid = False
                     while not valid:
                         column = int(input("enter a column between 0 and 7: "))
@@ -40,7 +41,7 @@ class terminal():
                     self.__game.playGame(None, column, row, 1, dir)
                     print(self.__game.getBoard())
                 else:
-                    print(f"Black ({self.__game.getPlayer2Name()}) turn")
+                    print(f"White ({self.__game.getPlayer2Name()}) turn")
                     valid = False
                     while not valid:
                         column = int(input("enter a column between 0 and 7: "))
@@ -57,7 +58,7 @@ class terminal():
             elif choice == "4":
                 return None
         white, black = self.__game.calculateWinner()
-        print(f"White: {white}\nBlack: {black}")
+        print(f"Black: {white}\nWhite: {black}")
         if white > black:
             print(f"{self.__game.getPlayer1Name()} wins!")
         elif black > white:
@@ -77,7 +78,7 @@ class terminal():
         while not self.__game.checkgameover(self.__game.getBoard()):
             self.__game.displayBoard(self.__game.getBoard())
             if self.__game.getTurn() % 2 == 1:
-                print(f"White ({self.__game.getPlayer1Name()}) turn")
+                print(f"Black ({self.__game.getPlayer1Name()}) turn")
                 choice = input("""
 1. Play
 2. Save
@@ -128,7 +129,7 @@ class terminal():
                 self.__game.setTurn(1)
 
         white, black = self.__game.calculateWinner()
-        print(f"White: {white}\nBlack: {black}")
+        print(f"Black: {white}\nWhite: {black}")
         if white > black:
             print(f"{self.__game.getPlayer1Name()} wins!")
         elif black > white:
@@ -136,7 +137,7 @@ class terminal():
         else:
             print("Tie!")
 
-    def startGame(self):
+    def run(self):
         '''
             Method: startGame
             Parameters: None
@@ -159,7 +160,3 @@ class terminal():
             return None
         elif x == "4":
             return None
-    
-if __name__ == "__main__":
-    game = terminal("Player 1", "Player 2")
-    game.startGame()

@@ -14,6 +14,7 @@ class UI(ABC):
     
 class GUI(UI):
     def __init__(self):
+        super().__init__()
         self.help_win = None
         self._game_win = None
         self.__boards = []
@@ -124,6 +125,10 @@ class GUI(UI):
             y = int(y//ratio)
         except Exception as e:
             print(e)
+        validmoves = self._game.getValidMoves(self._game.getBoard(), colour)
+        if len(validmoves) == 0:
+            self._game.setTurn(1)
+            return
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
         if valid:
             self._game.playGame(None, x, y, colour, dir)
@@ -336,6 +341,10 @@ class GUI(UI):
             y = int(y//ratio)
         except Exception as e:
             print(e)
+        validmoves = self._game.getValidMoves(self._game.getBoard(), colour)
+        if len(validmoves) == 0:
+            self._game.setTurn(1)
+            return
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
         if valid:
             self._game.playGame(None, x, y, colour, dir)
@@ -353,7 +362,6 @@ class GUI(UI):
             else:
                 computercolour = 1
             computermove = self.computermove()
-            print(computermove)
             self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
             self.__boards.append(copy.deepcopy(self._game.getBoard()))
             
@@ -397,5 +405,3 @@ class GUI(UI):
             print(f"minimax score: {score}")
         return computermove
 
-ui = GUI()
-ui.run()
