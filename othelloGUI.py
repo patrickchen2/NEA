@@ -261,7 +261,24 @@ class GUI(UI):
 
         self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
         self.loadbutton.grid(row=1, column=2, columnspan=2)
+
+        if self.hintbutton.cget("text") == "Enabled":
+            self.hintbutton = tk.Button(self._game_win, text="Hint", command=self.givehint)
+            self.hintbutton.grid(row=2, column=1, columnspan=2)
+
         self.displayBoard(self._game_win)
+
+    def givehint(self):
+        #play the game from the player's perspective using minimax
+        hintmove, score = self._game.minimax(self._game.getBoard(), 5, True, 1, -100000, 100000)
+        
+        #display the hint
+        ratio = self.canvassize/8
+        self.c.create_oval(hintmove[0][1]*ratio, hintmove[0][0]*ratio, (hintmove[0][1]+1)*ratio, (hintmove[0][0]+1)*ratio, fill="yellow")
+
+        #force the update
+        self._root.update()
+        self._root.update_idletasks()
 
     def saveGame(self):
         savewindow = tk.Toplevel(self._game_win)
@@ -368,7 +385,7 @@ class GUI(UI):
             if self._game.getDifficulty() == 1:
                 time.sleep(0.5)
 
-            self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
+            self.t.insert(tk.END, self._player2 + ": " + str(computermove[0][1]) + "," + str(computermove[0][0]) + "\n")
             self.indicator.config(text="Player 1 Turn")
             self._game.setTurn(2)
             self.displayBoard(self._game_win)
@@ -405,3 +422,5 @@ class GUI(UI):
             print(f"minimax score: {score}")
         return computermove
 
+ui = GUI()
+ui.run()

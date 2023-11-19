@@ -126,7 +126,6 @@ class Othello:
                     pass
                 else:
                     score -= matrix[row][col]
-        print(score)
         return score
     
     def checkgameover(self, board):
