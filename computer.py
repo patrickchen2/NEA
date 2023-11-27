@@ -3,7 +3,6 @@ from player import Player
 class Computer(Player):
     def __init__(self, name):
         super().__init__(name)
-        self.__pieceColour = None
         self.__difficulty = None
 
     def getDifficulty(self):
@@ -11,4 +10,11 @@ class Computer(Player):
     
     def setDifficulty(self, difficulty):
         self.__difficulty = difficulty
+
+    def getName(self):
+        return self.__Name
+    
+    def setName(self, name):
+        self.__Name = name
+
 

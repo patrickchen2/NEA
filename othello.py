@@ -44,7 +44,7 @@ class Othello:
         count = 0
         for row in range(8):
             for col in range(8):
-                if board[row][col] == 1:
+                if board[row][col] == 2:
                     count += 1
 
         return count
@@ -59,7 +59,7 @@ class Othello:
         count = 0
         for row in range(8):
             for col in range(8):
-                if board[row][col] == 2:
+                if board[row][col] == 1:
                     count += 1
         
         return count
@@ -69,7 +69,7 @@ class Othello:
             Method: playGame
             Parameters: board, col, row, colour, direction
             Returns: None
-            Does: places a piece on the baord and flips the pieces
+            Does: places a piece on the board and flips the pieces
         '''
         if board:
             for dir in direction:
@@ -103,7 +103,7 @@ class Othello:
     def calculateScore(self, board, colour):
         '''
             Method: calculateScore
-            Parameters: board, colour, row, col
+            Parameters: board, colour
             Returns: score
 
             Does: Calculates the score of the board for a certain player
@@ -301,8 +301,8 @@ class Othello:
     def minimax(self, board, depth, ismaximising, startingcolour, a, beta):
         '''
             Method: minimax
-            Parameters: board, depth, ismaximising
-            Returns: score
+            Parameters: board, depth, ismaximising, startingcolour, a, beta
+            Returns: move, value
             
             Does: Calculates the score of the board
         '''  
@@ -336,42 +336,39 @@ class Othello:
         if ismaximising:
             validlocations = self.getValidMoves(board, startingcolour)
             value = -100000000000000
-            move = random.choice(validlocations)
-            for mov in validlocations:
-                b = copy.deepcopy(board)
-                self.playGame(b, mov[0][0], mov[0][1], 2, mov[1])
-                new_score = self.minimax(b, depth - 1, False, 2, a, beta)[1]
-                if new_score > value:
-                    value = new_score
-                    move = mov
-                if value >= beta:
-                    break
-                a = max(a, value)
-            return move, value
+            try:
+                move = random.choice(validlocations)
+                for mov in validlocations:
+                    b = copy.deepcopy(board)
+                    self.playGame(b, mov[0][0], mov[0][1], 2, mov[1])
+                    new_score = self.minimax(b, depth - 1, False, 2, a, beta)[1]
+                    if new_score > value:
+                        value = new_score
+                        move = mov
+                    if value >= beta:
+                        break
+                    a = max(a, value)
+                return move, value
+            except:
+                return None, -100000000000000
         else:
             validlocations = self.getValidMoves(board, (startingcolour + 1)%2)
             value = 100000000000000
-            col = random.choice(validlocations)
-            for mov in validlocations:
-                b = copy.deepcopy(board)
-                self.playGame(b, mov[0][0], mov[0][1], 1, mov[1])
-                new_score = self.minimax(b, depth - 1, True, 2, a, beta)[1]
-                if new_score < value:
-                    value = new_score
-                    move = mov
-                if value <= a:
-                    break
-                beta = min(beta, value)
-            return move, value
-        
-    def getPieceAt(self, col, row):
-        '''
-            Method: getPieceAt
-            Parameters: col, row
-            Returns: piece at that location
-            Does: Gets the piece at a certain location
-        '''
-        return self.__Board[row][col]
+            try:
+                col = random.choice(validlocations)
+                for mov in validlocations:
+                    b = copy.deepcopy(board)
+                    self.playGame(b, mov[0][0], mov[0][1], 1, mov[1])
+                    new_score = self.minimax(b, depth - 1, True, 2, a, beta)[1]
+                    if new_score < value:
+                        value = new_score
+                        move = mov
+                    if value <= a:
+                        break
+                    beta = min(beta, value)
+                return move, value
+            except:
+                return None, 100000000000000
 
     def getBoard(self):
         '''
@@ -469,7 +466,7 @@ class Othello:
     def setDifficult(self, difficulty):
         '''
             Method: setDifficult
-            Parameters: None
+            Parameters: difficulty
             Returns: None
             Does: Sets the difficulty
         '''

@@ -7,9 +7,16 @@ import tkinter.messagebox as messagebox
 import copy
 import random
 import time
+
 class UI(ABC):
     @abstractmethod
     def run(self):
+        '''
+            Method: run
+            Parameters: None
+            Returns: None
+            Does: Runs the game
+        '''
         raise NotImplementedError
     
 class GUI(UI):
@@ -24,10 +31,20 @@ class GUI(UI):
 
         tk.Button(root, text="Multi Player", command=self.options1).grid(row=0, column=0, padx=5, pady=5, columnspan = 5)
         tk.Button(root, text="Single Player", command=self.options2).grid(row=1, column=0, padx=5, pady=5, columnspan = 5)
-        tk.Button(root, text="Quit", command=root.quit).grid(row=2, column=0, padx=5, pady=5, columnspan = 5)
+        tk.Button(root, text="How to Play", command=self.help).grid(row=2, column=0, padx=5, pady=5, columnspan = 5)
+        tk.Button(root, text="Quit", command=root.quit).grid(row=3, column=0, padx=5, pady=5, columnspan = 5)
 
 
         self._root = root
+    
+    def help(self):
+        howtoplay = tk.Toplevel(self._root)
+        howtoplay.title("How to Play")
+        howtoplay.geometry("500x300")
+        howtoplaytext = tk.Text(howtoplay, height=20, width=50)
+        howtoplaytext.grid(row=0, column=0, padx=5, pady=5, columnspan = 5)
+        howtoplaytext.insert(tk.END, "How to Play\n")
+        howtoplaytext.insert(tk.END, "1. The game starts with 4 pieces in the middle of the board, 2 black and 2 white\n2. Black always goes first\n3. The goal of the game is to have the most pieces on the board\n4. To place a piece, click on the square you want to place it in\n5. You can only place a piece in a square that will flip at least one of your opponent's pieces\n6. If you cannot place a piece, you must pass\n7. The game ends when there are no more valid moves\n8. The player with the most pieces wins\n")                                  
     
     def play1(self):
         if self._game_win:
@@ -47,7 +64,7 @@ class GUI(UI):
         self.canvassize = 700
         tk.Grid.rowconfigure(self._game_win, 0, weight=1)
         tk.Grid.columnconfigure(self._game_win, 0, weight=1)
-        self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg="dark green")
+        self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.boardcolourbutton.cget("text"))
         self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
         self.c.bind("<Button-1>", self.move)
 
@@ -147,7 +164,12 @@ class GUI(UI):
             self.displayBoard(self._game_win)
             self.gameClose()
             game_win = None
-            messagebox.showinfo("Game Over", "Game Over")    
+            if self._game.getBlackScore(self._game.getBoard()) > self._game.getWhiteScore(self._game.getBoard()):
+                messagebox.showinfo("Game Over", "Black Wins")
+            elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
+                messagebox.showinfo("Game Over", "White Wins")
+            else:
+                messagebox.showinfo("Game Over", "Tie")
         self.displayBoard(self._game_win)
     
     def run(self):
@@ -173,9 +195,25 @@ class GUI(UI):
         self.validbutton = tk.Button(newwindow, text="Disabled", command=self.valids, bg="red")
         self.validbutton.grid(row=2, column=1, columnspan=2)
 
-        nextbutton = tk.Button(newwindow, text="Next", command=self.play1)
-        nextbutton.grid(row=3, column=0, columnspan=2)
+        self.boardcolourlabel = tk.Label(newwindow, text="Board Colour: ")
+        self.boardcolourlabel.grid(row=3, column=0)
+        self.boardcolourbutton = tk.Button(newwindow, text="dark green", command=self.boardcolour, bg="dark green")
+        self.boardcolourbutton.grid(row=3, column=1, columnspan=2)
 
+        nextbutton = tk.Button(newwindow, text="Next", command=self.play1)
+        nextbutton.grid(row=4, column=0, columnspan=2)
+
+    def boardcolour(self):
+        colours = ["dark green", "blue", "red", "yellow", "orange", "purple", "pink", "brown"]
+        index = colours.index(self.boardcolourbutton.cget("text"))
+        if index == len(colours)-1:
+            index = 0
+        else:
+            index += 1
+        
+        self.boardcolourbutton.config(text=colours[index])
+        self.boardcolourbutton.config(bg=colours[index])
+        
     def options2(self):
         option2 = tk.Toplevel(self._root)
         option2.title("Options")
@@ -201,8 +239,13 @@ class GUI(UI):
         self.hintbutton = tk.Button(option2, text="Disabled", command=self.hints, bg="red")
         self.hintbutton.grid(row=3, column=1, columnspan=2)
 
+        self.boardcolourlabel = tk.Label(option2, text="Board Colour: ")
+        self.boardcolourlabel.grid(row=4, column=0)
+        self.boardcolourbutton = tk.Button(option2, text="dark green", command=self.boardcolour, bg="dark green")
+        self.boardcolourbutton.grid(row=4, column=1, columnspan=2)
+
         nextbutton = tk.Button(option2, text="Next", command=self.play2)
-        nextbutton.grid(row=4, column=0, columnspan=2)
+        nextbutton.grid(row=5, column=0, columnspan=2)
 
     def valids(self):
         if self.validbutton.cget("text") == "Disabled":
@@ -240,7 +283,7 @@ class GUI(UI):
         self.canvassize = 700
         tk.Grid.rowconfigure(self._game_win, 0, weight=1)
         tk.Grid.columnconfigure(self._game_win, 0, weight=1)
-        self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg="dark green")
+        self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.boardcolourbutton.cget("text"))
         self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
         self.c.bind("<Button-1>", self.move2)
 
@@ -396,7 +439,12 @@ class GUI(UI):
             self.displayBoard(self._game_win)
             self.gameClose()
             game_win = None
-            messagebox.showinfo("Game Over", "Game Over")      
+            if self._game.getBlackScore(self._game.getBoard()) > self._game.getWhiteScore(self._game.getBoard()):
+                messagebox.showinfo("Game Over", "Player 1 Wins")
+            elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
+                messagebox.showinfo("Game Over", "Computer Wins")
+            else:
+                messagebox.showinfo("Game Over", "Tie")
     
     def computermove(self):
         move = self._game.getValidMoves(self._game.getBoard(), 2)
