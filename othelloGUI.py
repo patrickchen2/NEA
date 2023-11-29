@@ -427,9 +427,11 @@ class GUI(UI):
             else:
                 computercolour = 1
             computermove = self.computermove()
-            self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
-            self.__boards.append(copy.deepcopy(self._game.getBoard()))
-            
+            try:
+                self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
+                self.__boards.append(copy.deepcopy(self._game.getBoard()))
+            except:
+                pass
             if self._game.getDifficulty() == 1:
                 time.sleep(0.5)
 
@@ -456,6 +458,8 @@ class GUI(UI):
         #print(self.__game.getDifficulty())
         if self._game.getDifficulty() == 1:
             #choose a random move from the list of valid moves
+            if len(move) == 0:
+                return None
             computermove = random.choice(move)
         if self._game.getDifficulty() == 2:
             #choose the move which flips the most pieces
