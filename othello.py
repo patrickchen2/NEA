@@ -32,7 +32,7 @@ class Othello:
 
         if self.__Gamemode == 1:
             self.__Player2 = Computer("Computer")
-            self.__Player2.setDifficulty(int(input("Enter the difficulty of the computer (1,2,3): ")))
+            self.__Player2.setDifficulty(int(input("Enter the difficulty of the computer (1,2,3,4): ")))
             
     def getWhiteScore(self, board):
         '''

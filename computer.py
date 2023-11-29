@@ -9,7 +9,10 @@ class Computer(Player):
         return self.__difficulty
     
     def setDifficulty(self, difficulty):
-        self.__difficulty = difficulty
+        if difficulty <= 4 and difficulty >= 1:
+            self.__difficulty = difficulty
+        else:
+            self.__difficulty = 1
 
     def getName(self):
         return self.__Name

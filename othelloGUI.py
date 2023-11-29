@@ -33,10 +33,15 @@ class GUI(UI):
         tk.Button(root, text="Single Player", command=self.options2).grid(row=1, column=0, padx=5, pady=5, columnspan = 5)
         tk.Button(root, text="How to Play", command=self.help).grid(row=2, column=0, padx=5, pady=5, columnspan = 5)
         tk.Button(root, text="Quit", command=root.quit).grid(row=3, column=0, padx=5, pady=5, columnspan = 5)
-
+        tk.Button(root, text="Login", command=self.login).grid(row=0, column=8, padx=5, pady=5, columnspan = 5)
+        tk.Button(root, text="Register", command=self.register).grid(row=1, column=8, padx=5, pady=5, columnspan = 5)
 
         self._root = root
-    
+    def login(self):
+        pass
+
+    def register(self):
+        pass
     def help(self):
         howtoplay = tk.Toplevel(self._root)
         howtoplay.title("How to Play")
@@ -467,6 +472,9 @@ class GUI(UI):
                 
         if self._game.getDifficulty() == 3:
             computermove, score = self._game.minimax(self._game.getBoard(), 3, True, 2, -100000, 100000)
+            print(f"minimax score: {score}")
+        if self._game.getDifficulty() == 4:
+            computermove, score = self._game.minimax(self._game.getBoard(), 5, True, 2, -100000, 100000)
             print(f"minimax score: {score}")
         return computermove
 
