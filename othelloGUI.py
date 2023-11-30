@@ -79,6 +79,12 @@ class GUI(UI):
         self.t = tk.Text(self._game_win, height=2, width=30)
         self.t.grid(row = 0, column = 1, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
 
+        self.blackscore = tk.Label(self._game_win, text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
+        self.blackscore.grid(row=1, column=1, columnspan=2)
+
+        self.whitescore = tk.Label(self._game_win, text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+        self.whitescore.grid(row=1, column=2, columnspan=2)
+
         self.u = tk.Button(self._game_win, text = "Undo", command = self.undo)
         self.u.grid(row=1, column=0, columnspan=5)
         self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
@@ -162,6 +168,7 @@ class GUI(UI):
                 self.indicator.config(text="Black's Turn")
             self.__boards.append(copy.deepcopy(self._game.getBoard()))
             self._game.setTurn(1)
+        
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
@@ -175,6 +182,8 @@ class GUI(UI):
                 messagebox.showinfo("Game Over", "White Wins")
             else:
                 messagebox.showinfo("Game Over", "Tie")
+        self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+        self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
         self.displayBoard(self._game_win)
     
     def run(self):
@@ -304,11 +313,17 @@ class GUI(UI):
         self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
         self.quitbutton.grid(row=2, column=0, columnspan=5)
 
+        self.blackscore = tk.Label(self._game_win, text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
+        self.blackscore.grid(row=1, column=1, columnspan=2)
+
+        self.whitescore = tk.Label(self._game_win, text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+        self.whitescore.grid(row=1, column=2, columnspan=2)
+
         self.savebutton = tk.Button(self._game_win, text="Save", command=self.saveGame)
-        self.savebutton.grid(row=1, column=1, columnspan=2)
+        self.savebutton.grid(row=2, column=1, columnspan=2)
 
         self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
-        self.loadbutton.grid(row=1, column=2, columnspan=2)
+        self.loadbutton.grid(row=2, column=2, columnspan=2)
 
         if self.hintbutton.cget("text") == "Enabled":
             self.hintbutton = tk.Button(self._game_win, text="Hint", command=self.givehint)
@@ -418,7 +433,8 @@ class GUI(UI):
             self.indicator.config(text="Computer Turn")
 
             self.displayBoard(self._game_win)
-
+            self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+            self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
             self._root.update()
             self._root.update_idletasks()
             #computer's turn
@@ -439,6 +455,8 @@ class GUI(UI):
             self.indicator.config(text="Player 1 Turn")
             self._game.setTurn(2)
             self.displayBoard(self._game_win)
+            self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+            self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
