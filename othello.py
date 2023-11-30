@@ -352,7 +352,10 @@ class Othello:
             except:
                 return None, -100000000000000
         else:
-            validlocations = self.getValidMoves(board, (startingcolour + 1)%2)
+            if startingcolour == 1:
+                validlocations = self.getValidMoves(board, 2)
+            elif startingcolour == 2:
+                validlocations = self.getValidMoves(board, 1)
             value = 100000000000000
             try:
                 col = random.choice(validlocations)
