@@ -3,12 +3,14 @@ from abc import ABC, abstractmethod
 from othello import Othello
 from player import Player
 from computer import Computer
+from stack import Stack
 import tkinter.messagebox as messagebox
 import copy
 import random
 import time
 
 class UI(ABC):
+    # class A skill - inheritance, polymorphism
     @abstractmethod
     def run(self):
         '''
@@ -24,7 +26,7 @@ class GUI(UI):
         super().__init__()
         self.help_win = None
         self._game_win = None
-        self.__boards = []
+        self.__boards = Stack()
         root = tk.Tk()
         root.title("Othello")
         root.geometry("300x300")
@@ -59,7 +61,7 @@ class GUI(UI):
 
         self._game = Othello(self._player1, self._player2, 1)
         self._game.setupGame()
-        self.__boards.append(copy.deepcopy(self._game.getBoard()))
+        self.__boards.push(copy.deepcopy(self._game.getBoard()))
         self._finished = False
 
         self._game_win = tk.Toplevel(self._root)
@@ -125,9 +127,10 @@ class GUI(UI):
         self._game_win.quit()
 
     def undo(self):
+        #class A skill - stacks
         if len(self.__boards) > 1:
             self.__boards.pop()
-            self._game.setBoard(copy.deepcopy(self.__boards[-1]))
+            self._game.setBoard(copy.deepcopy(self.__boards.peek()))
             self._game.setTurn(-1)
             if self._game.getGamemode() == 1:
                 self._game.setTurn(-1)
@@ -166,7 +169,7 @@ class GUI(UI):
             elif colour == 2:
                 self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
                 self.indicator.config(text="Black's Turn")
-            self.__boards.append(copy.deepcopy(self._game.getBoard()))
+            self.__boards.push(copy.deepcopy(self._game.getBoard()))
             self._game.setTurn(1)
         
         else:
@@ -287,7 +290,7 @@ class GUI(UI):
         self._game.setDifficult(self._difficulty)
         self._game.setupGame()
         self._game.setGamemode(1)
-        self.__boards.append(copy.deepcopy(self._game.getBoard()))
+        self.__boards.push(copy.deepcopy(self._game.getBoard()))
         self._finished = False
 
         self._game_win = tk.Toplevel(self._root)
@@ -445,7 +448,7 @@ class GUI(UI):
             computermove = self.computermove()
             try:
                 self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
-                self.__boards.append(copy.deepcopy(self._game.getBoard()))
+                self.__boards.push(copy.deepcopy(self._game.getBoard()))
             except:
                 pass
             if self._game.getDifficulty() == 1:
@@ -500,5 +503,5 @@ class GUI(UI):
             print(f"minimax score: {score}")
         return computermove
 
-ui = GUI()
-ui.run()
+
+

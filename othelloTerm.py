@@ -35,11 +35,9 @@ class terminal(UI):
                         column = int(input("enter a column between 0 and 7: "))
                         row = int(input("enter a row between 0 and 7: "))
                         valid, dir = self.__game.isvalidmove(self.__game.getBoard(), column, row, 1)
-                        print(valid, dir)
                         if not valid:
                             print("Invalid move")
                     self.__game.playGame(None, column, row, 1, dir)
-                    print(self.__game.getBoard())
                 else:
                     print(f"White ({self.__game.getPlayer2Name()}) turn")
                     valid = False

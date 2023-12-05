@@ -7,8 +7,8 @@ import copy
 class Othello:
     def __init__(self, player1, player2, turn):
 
-
-        self.__Board = [[0 for i in range(8)] for j in range(8)]
+        #skill group A - composition
+        self.__Board = [[0 for i in range(8)] for j in range(8)] # skill group B - multidimensional arrays
         self.__Player1 = player1
         self.__Player2 = player2
         self.__Turn = turn
@@ -35,6 +35,7 @@ class Othello:
             self.__Player2.setDifficulty(int(input("Enter the difficulty of the computer (1,2,3,4): ")))
             
     def getWhiteScore(self, board):
+        #skill group C - linear searches 
         '''
             Method: getWhiteScore
             Parameters: board
@@ -158,6 +159,7 @@ class Othello:
 
 
     def isvalidmove(self, board, col, row, colour):
+        #skill group A - complex user defined algorithms
         '''
             Method: isvalidmove
             Parameters: board, col, row, colour
@@ -227,6 +229,7 @@ class Othello:
             print()
 
     def saveGame(self):
+        #skill group B - file reading and writing and text files
         '''
             Method: saveGame
             Parameters: None
@@ -299,6 +302,7 @@ class Othello:
 
 
     def minimax(self, board, depth, ismaximising, startingcolour, a, beta):
+        #Skill group A - recursion
         '''
             Method: minimax
             Parameters: board, depth, ismaximising, startingcolour, a, beta
@@ -348,6 +352,7 @@ class Othello:
                     if value >= beta:
                         break
                     a = max(a, value)
+                print(value)
                 return move, value
             except:
                 return None, -100000000000000
@@ -369,6 +374,7 @@ class Othello:
                     if value <= a:
                         break
                     beta = min(beta, value)
+                print(value)
                 return move, value
             except:
                 return None, 100000000000000
