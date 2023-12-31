@@ -9,6 +9,7 @@ class terminal(UI):
     def __init__(self, player1, player2):
         super().__init__()
         self.__game = Othello(Player(player1), Player(player2), 1)
+        
     def twoPlayerGame(self):
         """
             Method: twoPlayerGame

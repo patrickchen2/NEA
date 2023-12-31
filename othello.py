@@ -303,6 +303,8 @@ class Othello:
 
     def minimax(self, board, depth, ismaximising, startingcolour, a, beta):
         #Skill group A - recursion
+        #skill group A - dynamic generaton of objects
+        #skill group A - tree traversal
         '''
             Method: minimax
             Parameters: board, depth, ismaximising, startingcolour, a, beta
