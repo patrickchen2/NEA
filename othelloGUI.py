@@ -89,7 +89,7 @@ class GUI(UI):
                 tk.Label(leaderboard, text=f"{i+1}. {stats[i][0]}: {stats[i][3]}").grid(row=i, column=0)
 
     def login(self):
-        
+
         login = tk.Toplevel(self._root)
         self.loggedin = True
         user = tk.Label(login, text="Username: ")
@@ -360,13 +360,17 @@ class GUI(UI):
                 validlocations = self._game.getValidMoves(board, 2)
             for location in validlocations:
                 self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
-        elif self.validbutton.cget("text") == "Disabled" and self.pref is not None and self.pref[4] == 1:
-            if self._game.getTurn()%2 == 1: # black
-                validlocations = self._game.getValidMoves(board, 1)
-            else:
-                validlocations = self._game.getValidMoves(board, 2)
-            for location in validlocations:
-                self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
+        elif self.validbutton.cget("text") == "Disabled":
+            try:
+                if self.pref[4] == 1:
+                    if self._game.getTurn()%2 == 1: # black
+                        validlocations = self._game.getValidMoves(board, 1)
+                    else:
+                        validlocations = self._game.getValidMoves(board, 2)
+                    for location in validlocations:
+                        self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
+            except:
+                pass
 
     def undo(self):
         #class A skill - stacks
@@ -670,6 +674,7 @@ class GUI(UI):
             self.displayBoard(self._game_win)
             self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
             self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
+            self.checkend()
             self._root.update()
             self._root.update_idletasks()
             #computer's turn
@@ -695,6 +700,9 @@ class GUI(UI):
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
+        self.checkend()
+    
+    def checkend(self):
         if self._game.checkgameover(self._game.getBoard()):
             if not self.loggedin:
                 self.displayBoard(self._game_win)
@@ -723,7 +731,7 @@ class GUI(UI):
                     messagebox.showinfo("Game Over", "Computer Wins")
                 else:
                     messagebox.showinfo("Game Over", "Tie")
-    
+
     def givehint(self):
         #play the game from the player's perspective using minimax
         hintmove, score = self._game.minimax(self._game.getBoard(), 5, True, 1, -100000, 100000)
