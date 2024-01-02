@@ -91,7 +91,6 @@ class GUI(UI):
     def login(self):
 
         login = tk.Toplevel(self._root)
-        self.loggedin = True
         user = tk.Label(login, text="Username: ")
         user.grid(row=0, column=0)
         self.userentry = tk.Entry(login, width = 60)
@@ -689,8 +688,8 @@ class GUI(UI):
                 self.t.insert(tk.END, self._player2 + ": " + str(computermove[0][1]) + "," + str(computermove[0][0]) + "\n")
             except: #if there are no valid moves for the computer
                 pass
-            if self._game.getDifficulty() == 1:
-                time.sleep(0.5)
+            
+            time.sleep(2)
 
             self.indicator.config(text="Player 1 Turn")
             self._game.setTurn(2)
