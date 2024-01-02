@@ -374,7 +374,7 @@ class GUI(UI):
     def undo(self):
         #class A skill - stacks
         #class A skill - stack operations
-        if len(self.__boards) > 1:
+        if self.__boards.size() > 1:
             self.__boards.pop()
             self._game.setBoard(copy.deepcopy(self.__boards.peek()))
             self._game.setTurn(-1)
@@ -805,7 +805,9 @@ class GUI(UI):
                 f.read(1)
         
         self._game.setBoard(board)
-        self.__boards = [copy.deepcopy(self._game.getBoard())]
+        while self.__boards.size > 0:
+            self.__boards.pop()
+        self.__boards.push(copy.deepcopy(self._game.getBoard()))
         self.t.delete("1.0", tk.END)
         self.displayBoard(self._game_win)
     
