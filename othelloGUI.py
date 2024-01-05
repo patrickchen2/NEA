@@ -253,6 +253,7 @@ class GUI(UI):
 
         self._game = Othello(self._player1, self._player2, 1)
         self._game.setupGame()
+        self._game.setGamemode(2)
         self.__boards.push(copy.deepcopy(self._game.getBoard()))
         self._finished = False
 
@@ -298,9 +299,6 @@ class GUI(UI):
         except Exception as e:
             print(e)
         validmoves = self._game.getValidMoves(self._game.getBoard(), colour)
-        if len(validmoves) == 0:
-            self._game.setTurn(1)
-            return
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
         if valid:
             self._game.playGame(None, x, y, colour, dir)
@@ -310,22 +308,17 @@ class GUI(UI):
             elif colour == 2:
                 self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
                 self.indicator.config(text="Black's Turn")
+                print(len(self._game.getValidMoves(self._game.getBoard(), 1)))
             self.__boards.push(copy.deepcopy(self._game.getBoard()))
+            if len(validmoves) == 0:
+                self._game.setTurn(1)
             self._game.setTurn(1)
         
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
-        if self._game.checkgameover(self._game.getBoard()):
-            self.displayBoard(self._game_win)
-            self.gameClose()
-            game_win = None
-            if self._game.getBlackScore(self._game.getBoard()) > self._game.getWhiteScore(self._game.getBoard()):
-                messagebox.showinfo("Game Over", "Black Wins")
-            elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
-                messagebox.showinfo("Game Over", "White Wins")
-            else:
-                messagebox.showinfo("Game Over", "Tie")
+        print(self._game.checkgameover(self._game.getBoard()))
+        self.checkend()
         self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
         self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
         self.displayBoard(self._game_win)
@@ -660,9 +653,6 @@ class GUI(UI):
         except Exception as e:
             print(e)
         validmoves = self._game.getValidMoves(self._game.getBoard(), colour)
-        if len(validmoves) == 0:
-            self._game.setTurn(1)
-            return
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
         if valid:
             self._game.playGame(None, x, y, colour, dir)
@@ -681,15 +671,45 @@ class GUI(UI):
                 computercolour = 2
             else:
                 computercolour = 1
-            computermove = self.computermove()
-            try:
-                self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
-                self.__boards.push(copy.deepcopy(self._game.getBoard()))
-                self.t.insert(tk.END, self._player2 + ": " + str(computermove[0][1]) + "," + str(computermove[0][0]) + "\n")
-            except: #if there are no valid moves for the computer
-                pass
+            validmoves = self._game.getValidMoves(self._game.getBoard(), computercolour)
+
+            #checking if the computer can play any moves
+            if len(validmoves) == 0:
+                print("hi")
+                self._game.setTurn(1)
+                self.indicator.config(text="Player 1 Turn")
+                self.displayBoard(self._game_win)
+                self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+                self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
+                self.checkend()
+                return
             
-            time.sleep(2)
+            #keeping playing a computer's move until the other play has a valid move
+            while True:
+                computermove = self.computermove()
+                if computermove:
+                    self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
+                    self.__boards.push(copy.deepcopy(self._game.getBoard()))
+                    self.t.insert(tk.END, self._player2 + ": " + str(computermove[0][1]) + "," + str(computermove[0][0]) + "\n")
+                    time.sleep(2)
+
+                #display the new board
+                self.displayBoard(self._game_win)
+                self._root.update()
+                self._root.update_idletasks()
+
+                #do the necessary updates
+                self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+                self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
+                self.checkend()
+
+                #checking whether the user can play any moves
+                if len(self._game.getValidMoves(self._game.getBoard(), colour)) != 0:
+                    self._game.setTurn(-2)
+                    break
+                else:
+                    self.t.insert(tk.END, self._player2 + ": " + "Pass" + "\n")
+                    self._game.setTurn(2)
 
             self.indicator.config(text="Player 1 Turn")
             self._game.setTurn(2)
@@ -698,36 +718,46 @@ class GUI(UI):
             self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
-            pass
-        self.checkend()
+            print("Invalid Move")
     
     def checkend(self):
         if self._game.checkgameover(self._game.getBoard()):
-            if not self.loggedin:
+            if self._game.getGamemode() == 1:
+                if not self.loggedin:
+                    self.displayBoard(self._game_win)
+                    self.gameClose()
+                    game_win = None
+                    if self._game.getBlackScore(self._game.getBoard()) > self._game.getWhiteScore(self._game.getBoard()):
+                        messagebox.showinfo("Game Over", "Player 1 Wins")
+                    elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
+                        messagebox.showinfo("Game Over", "Computer Wins")
+                    else:
+                        messagebox.showinfo("Game Over", "Tie")
+                else:
+                    self.displayBoard(self._game_win)
+                    self.gameClose()
+                    if self._game.getBlackScore(self._game.getBoard()) > self._game.getWhiteScore(self._game.getBoard()):
+                        stats = self.datams.getstatistics(self.user)
+                        print(stats)
+                        newscore = stats[0][3] + self.calcScorew()
+                        self.datams.editstatistics(self.user, "wins", stats[0][1]+1)
+                        self.datams.editstatistics(self.user, "score", newscore)
+                        messagebox.showinfo("Game Over", "Player 1 Wins")
+                    elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
+                        stats = self.datams.getstatistics(self.user)
+                        newscore = stats[0][3] + self.calcScorel()
+                        self.datams.editstatistics(self.user, "losses", stats[0][2]+1)
+                        self.datams.editstatistics(self.user, "score", newscore)
+                        messagebox.showinfo("Game Over", "Computer Wins")
+                    else:
+                        messagebox.showinfo("Game Over", "Tie")
+            elif self._game.getGamemode() == 2:
                 self.displayBoard(self._game_win)
                 self.gameClose()
-                game_win = None
                 if self._game.getBlackScore(self._game.getBoard()) > self._game.getWhiteScore(self._game.getBoard()):
-                    messagebox.showinfo("Game Over", "Player 1 Wins")
+                    messagebox.showinfo("Game Over", "Black Wins")
                 elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
-                    messagebox.showinfo("Game Over", "Computer Wins")
-                else:
-                    messagebox.showinfo("Game Over", "Tie")
-            else:
-                self.displayBoard(self._game_win)
-                if self._game.getBlackScore(self._game.getBoard()) > self._game.getWhiteScore(self._game.getBoard()):
-                    stats = self.datams.getstatistics(self.user)
-                    print(stats)
-                    newscore = stats[0][3] + self.calcScorew()
-                    self.datams.editstatistics(self.user, "wins", stats[0][1]+1)
-                    self.datams.editstatistics(self.user, "score", newscore)
-                    messagebox.showinfo("Game Over", "Player 1 Wins")
-                elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
-                    stats = self.datams.getstatistics(self.user)
-                    newscore = stats[0][3] + self.calcScorel()
-                    self.datams.editstatistics(self.user, "losses", stats[0][2]+1)
-                    self.datams.editstatistics(self.user, "score", newscore)
-                    messagebox.showinfo("Game Over", "Computer Wins")
+                    messagebox.showinfo("Game Over", "White Wins")
                 else:
                     messagebox.showinfo("Game Over", "Tie")
 
