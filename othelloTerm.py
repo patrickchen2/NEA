@@ -9,7 +9,6 @@ class terminal(UI):
     def __init__(self, player1, player2):
         super().__init__()
         self.__game = Othello(Player(player1), Player(player2), 1)
-        
     def twoPlayerGame(self):
         """
             Method: twoPlayerGame
@@ -51,9 +50,27 @@ class terminal(UI):
                     self.__game.playGame(None, column, row, 2, dir)
                 self.__game.setTurn(1)
             elif choice == "2":
-                self.__game.saveGame()
+                validchoice = False
+                while not validchoice:
+                    c = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
+                    if c in [1,2,3]:
+                        validchoice = True
+                    elif c == 4:
+                        return None
+                    else:
+                        print("Invalid choice, try again")
+                self.__game.saveGame(c)
             elif choice == "3":
-                self.__game.loadGame()
+                validchoice = False
+                while not validchoice:
+                    c = int(input("choose which file you want to load from(1, 2, 3, 4 to cancel): "))
+                    if c in [1,2,3]:
+                        validchoice = True
+                    elif choice == 4:
+                        return None
+                    else:
+                        print("Invalid choice, try again")
+                self.__game.loadGame(c)
             elif choice == "4":
                 return None
         white, black = self.__game.calculateWinner()

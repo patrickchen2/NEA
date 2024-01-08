@@ -15,9 +15,9 @@ class Computer(Player):
             self.__difficulty = 1
 
     def getName(self):
-        return self.__Name
+        return self._Name
     
     def setName(self, name):
-        self.__Name = name
+        self._Name = name
 
 

@@ -251,7 +251,7 @@ class GUI(UI):
         self._player1 = self.player1entry.get()
         self._player2 = self.player2entry.get()
 
-        self._game = Othello(self._player1, self._player2, 1)
+        self._game = Othello(Player(self._player1), Player(self._player2), 1)
         self._game.setupGame()
         self._game.setGamemode(2)
         self.__boards.push(copy.deepcopy(self._game.getBoard()))
@@ -279,6 +279,13 @@ class GUI(UI):
 
         self.whitescore = tk.Label(self._game_win, text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
         self.whitescore.grid(row=1, column=2, columnspan=2)
+        
+
+        self.savebutton = tk.Button(self._game_win, text="Save", command=self.saveGame)
+        self.savebutton.grid(row=2, column=1, columnspan=2)
+
+        self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
+        self.loadbutton.grid(row=2, column=2, columnspan=2)
 
         self.u = tk.Button(self._game_win, text = "Undo", command = self.undo)
         self.u.grid(row=1, column=0, columnspan=5)
@@ -308,8 +315,7 @@ class GUI(UI):
             elif colour == 2:
                 self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
                 self.indicator.config(text="Black's Turn")
-                print(len(self._game.getValidMoves(self._game.getBoard(), 1)))
-            self.__boards.push(copy.deepcopy(self._game.getBoard()))
+            self._game.pushstack()
             if len(validmoves) == 0:
                 self._game.setTurn(1)
             self._game.setTurn(1)
@@ -317,7 +323,6 @@ class GUI(UI):
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             pass
-        print(self._game.checkgameover(self._game.getBoard()))
         self.checkend()
         self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
         self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
@@ -367,22 +372,18 @@ class GUI(UI):
     def undo(self):
         #class A skill - stacks
         #class A skill - stack operations
-        if self.__boards.size() > 1:
-            self.__boards.pop()
-            self._game.setBoard(copy.deepcopy(self.__boards.peek()))
-            self._game.setTurn(-1)
-            if self._game.getGamemode() == 1:
-                self._game.setTurn(-1)
-                self.undos += 1
-            if self._game.getTurn()%2 == 1:
-                self.indicator.config(text="Black's Turn")
-            else:
-                self.indicator.config(text="White's Turn")
-            self.c.delete("all")
-            self.t.insert(tk.END, "Undo\n")
-            self.displayBoard(self._game_win)
+        self._game.undo()
+        if self._game.getTurn()%2 == 1:
+            self.indicator.config(text="Black's Turn")
         else:
-            pass
+            self.indicator.config(text="White's Turn")
+        
+        if self._game.getGamemode() == 1:
+            self._game.setTurn(-1)
+            self.undos += 1
+        self.c.delete("all")
+        self.t.insert(tk.END, "Undo\n")
+        self.displayBoard(self._game_win)
 
     def options1(self):
         newwindow = tk.Toplevel(self._root)
@@ -663,7 +664,11 @@ class GUI(UI):
             self.displayBoard(self._game_win)
             self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
             self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-            self.checkend()
+            ended = self.checkend()
+            if ended:
+                print("hello")
+                self.gameClose()
+                return
             self._root.update()
             self._root.update_idletasks()
             #computer's turn
@@ -689,7 +694,8 @@ class GUI(UI):
                 computermove = self.computermove()
                 if computermove:
                     self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
-                    self.__boards.push(copy.deepcopy(self._game.getBoard()))
+                    #self.__boards.push(copy.deepcopy(self._game.getBoard()))
+                    self._game.pushstack()
                     self.t.insert(tk.END, self._player2 + ": " + str(computermove[0][1]) + "," + str(computermove[0][0]) + "\n")
                     time.sleep(2)
 
@@ -701,7 +707,10 @@ class GUI(UI):
                 #do the necessary updates
                 self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
                 self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-                self.checkend()
+                ended = self.checkend()
+                if ended:
+                    self.gameClose()
+                    return
 
                 #checking whether the user can play any moves
                 if len(self._game.getValidMoves(self._game.getBoard(), colour)) != 0:
@@ -760,6 +769,7 @@ class GUI(UI):
                     messagebox.showinfo("Game Over", "White Wins")
                 else:
                     messagebox.showinfo("Game Over", "Tie")
+            return True
 
     def givehint(self):
         #play the game from the player's perspective using minimax
@@ -791,17 +801,7 @@ class GUI(UI):
             savenumber = int(self.savenumberentry.get())
         except:
             messagebox.showinfo("Invalid Save Number", "Invalid Save Number")
-
-        with open(f"game{savenumber}.txt", "w") as f:
-            f.write(f"{self._game.getPlayer1Name()}\n")
-            f.write(f"{self._game.getPlayer2Name()}\n")
-            f.write(f"{self._game.getGamemode()}\n")
-            f.write(f"{self._game.getTurn()}\n")
-
-            for row in range(8):
-                for col in range(8):
-                    f.write(f"{self._game.getBoard()[row][col]}")
-                f.write("\n")
+        self._game.saveGame(savenumber)
 
     def loadGame(self):
         loadwindow = tk.Toplevel(self._game_win)
@@ -822,22 +822,15 @@ class GUI(UI):
         except:
             messagebox.showinfo("Invalid Load Number", "Invalid Load Number")
 
-        with open(f"game{loadnumber}.txt", "r") as f:
-            self._game.setPlayer1(f.readline().strip())
-            self._game.setPlayer2(f.readline().strip())
-            self._game.setGamemode(int(f.readline().strip()))
-            self._game.setTurn(int(f.readline().strip())-1)
-            board = []
-            for row in range(8):
-                board.append([])
-                for col in range(8):
-                    board[row].append(int(f.read(1)))
-                f.read(1)
+        self._game.loadGame(loadnumber)
         
-        self._game.setBoard(board)
-        while self.__boards.size > 0:
-            self.__boards.pop()
-        self.__boards.push(copy.deepcopy(self._game.getBoard()))
+        self._game.clearStack()
+        self._game.pushstack()
+
+        if self._game.getTurn()%2 == 1:
+            self.indicator.config(text="Black's Turn")
+        else:
+            self.indicator.config(text="White's Turn")
         self.t.delete("1.0", tk.END)
         self.displayBoard(self._game_win)
     

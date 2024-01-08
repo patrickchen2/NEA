@@ -3,6 +3,7 @@ import time
 import random
 from computer import Computer
 import copy
+from stack import Stack
 
 class Othello:
     def __init__(self, player1, player2, turn):
@@ -14,7 +15,7 @@ class Othello:
         self.__Turn = turn
         self.__movedirections = [[-1,1], [0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0]]
         self.__Gamemode = 0
-
+        self.__Boards = Stack()
     
 
     def setupGame(self):
@@ -33,6 +34,8 @@ class Othello:
         if self.__Gamemode == 1:
             self.__Player2 = Computer("Computer")
             self.__Player2.setDifficulty(int(input("Enter the difficulty of the computer (1,2,3,4): ")))
+
+        self.__Boards.push(copy.deepcopy(self.__Board))
             
     def getWhiteScore(self, board):
         #skill group C - linear searches 
@@ -73,6 +76,7 @@ class Othello:
             Does: places a piece on the board and flips the pieces
         '''
         if board:
+            # minimax only
             for dir in direction:
                 i = 1
                 while True:
@@ -228,7 +232,7 @@ class Othello:
                 print(board[i][j], end = " ")
             print()
 
-    def saveGame(self):
+    def saveGame(self, choice):
         #skill group B - file reading and writing and text files
         '''
             Method: saveGame
@@ -243,28 +247,23 @@ class Othello:
             turn
             board
         '''
-        validchoice = False
-        while not validchoice:
-            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
-            if choice in [1,2,3]:
-                validchoice = True
-            elif choice == 4:
-                return None
-            else:
-                print("Invalid choice, try again")
             
         with open(f"game{choice}.txt", "w") as f:
             f.write(f"{self.__Player1.getName()}\n")
             f.write(f"{self.__Player2.getName()}\n")
             f.write(f"{self.__Gamemode}\n")
             f.write(f"{self.__Turn}\n")
+            if self.__Gamemode == 1:
+                f.write(f"{self.__Player2.getDifficulty()}\n")
+            else:
+                f.write("0\n")
             for row in range(8):
                 for col in range(8):
                     f.write(f"{self.__Board[row][col]}")
                 f.write("\n")
             print("Game saved")             
 
-    def loadGame(self):
+    def loadGame(self, choice):
         '''
             Method: loadGame
             Parameters: None
@@ -276,30 +275,22 @@ class Othello:
             player2
             gamemode
             turn
-            p1time
-            p2time
+            computerdifficulty (0 if no computer)
             board
-        '''
-        validchoice = False
-        while not validchoice:
-            choice = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
-            if choice in [1,2,3]:
-                validchoice = True
-            elif choice == 4:
-                return None
-            else:
-                print("Invalid choice, try again")
-        
+        '''     
         with open(f"game{choice}.txt", "r") as f:
             self.__Player1.setName(f.readline().strip())
             self.__Player2.setName(f.readline().strip())
             self.__Gamemode = int(f.readline().strip())
             self.__Turn = int(f.readline().strip())
+            diff = int(f.readline().strip())
+            if self.__Gamemode == 1:
+                self.__Player2.setDifficulty(diff)
+        
             for row in range(8):
                 line = f.readline().strip()
                 for col in range(8):
                     self.__Board[row][col] = int(line[col])
-
 
     def minimax(self, board, depth, ismaximising, startingcolour, a, beta):
         #Skill group A - recursion
@@ -426,6 +417,15 @@ class Othello:
         '''
         self.__Board = board
 
+    def undo(self):
+        if self.__Boards.size() > 1:
+            self.__Boards.pop()
+            self.__Board = copy.deepcopy(self.__Boards.peek())
+            self.__Turn -= 1
+            if self.__Gamemode == 1:
+                self.__Turn -= 1 
+            return True
+    
     def getPlayer1Name(self):
         '''
             Method: getPlayer1Name
@@ -500,3 +500,21 @@ class Othello:
             Does: Sets the gamemode
         '''
         self.__Gamemode = gamemode
+
+    def pushstack(self):
+        '''
+            Method: pushstack
+            Parameters: None
+            Returns: None
+            Does: Pushes the board onto the stack
+        '''
+        self.__Boards.push(copy.deepcopy(self.__Board))
+    
+    def clearStack(self):
+        '''
+            Method: clearStack
+            Parameters: None
+            Returns: None
+            Does: Clears the stack
+        '''
+        self.__Boards.clear()
