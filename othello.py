@@ -7,9 +7,13 @@ from stack import Stack
 
 class Othello:
     def __init__(self, player1, player2, turn):
-
+        ###################################
         #skill group A - composition
-        self.__Board = [[0 for i in range(8)] for j in range(8)] # skill group B - multidimensional arrays
+        ###################################
+        self.__Board = [[0 for i in range(8)] for j in range(8)] 
+        ###################################
+        # skill group B - multidimensional arrays
+        ###################################
         self.__Player1 = player1
         self.__Player2 = player2
         self.__Turn = turn
@@ -38,7 +42,9 @@ class Othello:
         self.__Boards.push(copy.deepcopy(self.__Board))
             
     def getWhiteScore(self, board):
+        ###################################
         #skill group C - linear searches 
+        ###################################
         '''
             Method: getWhiteScore
             Parameters: board
@@ -163,7 +169,9 @@ class Othello:
 
 
     def isvalidmove(self, board, col, row, colour):
+        ###################################
         #skill group A - complex user defined algorithms
+        ###################################
         '''
             Method: isvalidmove
             Parameters: board, col, row, colour
@@ -233,7 +241,9 @@ class Othello:
             print()
 
     def saveGame(self, choice):
+        ###################################
         #skill group B - file reading and writing and text files
+        ###################################
         '''
             Method: saveGame
             Parameters: None
@@ -245,6 +255,7 @@ class Othello:
             player2
             gamemode
             turn
+            computer dificulty (0 if no computer)
             board
         '''
             
@@ -285,6 +296,7 @@ class Othello:
             self.__Turn = int(f.readline().strip())
             diff = int(f.readline().strip())
             if self.__Gamemode == 1:
+                self.__Player2 = Computer("Computer")
                 self.__Player2.setDifficulty(diff)
         
             for row in range(8):
@@ -293,9 +305,10 @@ class Othello:
                     self.__Board[row][col] = int(line[col])
 
     def minimax(self, board, depth, ismaximising, startingcolour, a, beta):
-        #Skill group A - recursion
+        ###################################
         #skill group A - dynamic generaton of objects
         #skill group A - tree traversal
+        ###################################
         '''
             Method: minimax
             Parameters: board, depth, ismaximising, startingcolour, a, beta
@@ -338,6 +351,9 @@ class Othello:
                 for mov in validlocations:
                     b = copy.deepcopy(board)
                     self.playGame(b, mov[0][0], mov[0][1], 2, mov[1])
+                    ###################################
+                    #Skill group A - recursion
+                    ###################################
                     new_score = self.minimax(b, depth - 1, False, 2, a, beta)[1]
                     if new_score > value:
                         value = new_score
@@ -345,7 +361,6 @@ class Othello:
                     if value >= beta:
                         break
                     a = max(a, value)
-                print(value)
                 return move, value
             except:
                 return None, -100000000000000
@@ -367,7 +382,6 @@ class Othello:
                     if value <= a:
                         break
                     beta = min(beta, value)
-                print(value)
                 return move, value
             except:
                 return None, 100000000000000
@@ -518,3 +532,34 @@ class Othello:
             Does: Clears the stack
         '''
         self.__Boards.clear()
+
+    def cmove(self):
+        move = self.getValidMoves(self.getBoard(), 2)
+        #print(self.__game.getDifficulty())
+        if self.getDifficulty() == 1:
+            #choose a random move from the list of valid moves
+            if len(move) == 0:
+                return None
+            computermove = random.choice(move)
+        if self.getDifficulty() == 2:
+            #choose the move which flips the most pieces
+            same = copy.deepcopy(self.getBoard())
+            maxflips = 0
+            if len(move) == 0:
+                return None
+            computermove = random.choice(move)
+            for mov in move:
+                curr_score = self.getWhiteScore(same)
+                self.playGame(same, mov[0][0], mov[0][1], 2, mov[1])
+                score_diff = self.getWhiteScore(same) - curr_score
+                if score_diff > maxflips:
+                    maxflips = score_diff
+                    computermove = mov
+                
+        if self.getDifficulty() == 3:
+            computermove, score = self.minimax(self.getBoard(), 3, True, 2, -100000, 100000)
+            print(f"minimax score: {score}")
+        if self.getDifficulty() == 4:
+            computermove, score = self.minimax(self.getBoard(), 5, True, 2, -100000, 100000)
+            print(f"minimax score: {score}")
+        return computermove

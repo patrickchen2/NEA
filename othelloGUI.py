@@ -34,6 +34,7 @@ class GUI(UI):
         root.title("Othello")
         root.geometry("300x300")
         self.loggedin = False
+        self.pref = None
 
         tk.Button(root, text= "Login", command=self.login).grid(row=0, column=0, padx=5, pady=5, columnspan = 5)
         tk.Button(root, text= "Register", command=self.register).grid(row=1, column=0, padx=5, pady=5, columnspan = 5)
@@ -47,6 +48,7 @@ class GUI(UI):
         logged in:
         - Multi Player
         - Single Player
+        - Load Game
         - How to Play
         - Profile
         - Preferences
@@ -56,20 +58,22 @@ class GUI(UI):
         not logged in:
         - Multi Player
         - Single Player
+        - Load Game
         - How to Play
         - Quit'''
         mainscreen = tk.Toplevel(self._root)
         tk.Button(mainscreen, text="Multi Player", command=self.options1).grid(row=0, column=0, padx=5, pady=5, columnspan = 5)
         tk.Button(mainscreen, text="Single Player", command=self.options2).grid(row=1, column=0, padx=5, pady=5, columnspan = 5)
-        tk.Button(mainscreen, text="How to Play", command=self.help).grid(row=2, column=0, padx=5, pady=5, columnspan = 5)
+        tk.Button(mainscreen, text="Load Game", command=self.loadGame).grid(row=2, column=0, padx=5, pady=5, columnspan = 5)
+        tk.Button(mainscreen, text="How to Play", command=self.help).grid(row=3, column=0, padx=5, pady=5, columnspan = 5)
 
         if self.loggedin:
-            tk.Button(mainscreen, text="Profile", command=self.profile).grid(row=3, column=0, padx=5, pady=5, columnspan = 5)
-            tk.Button(mainscreen, text = "Preferences", command=self.preferences).grid(row=4, column=0, padx=5, pady=5, columnspan = 5)
-            tk.Button(mainscreen, text = "Leaderboard", command=self.leaderboard).grid(row=5, column=0, padx=5, pady=5, columnspan = 5)
-            tk.Button(mainscreen, text="Quit", command=self._root.quit).grid(row=6, column=0, padx=5, pady=5, columnspan = 5)
+            tk.Button(mainscreen, text="Profile", command=self.profile).grid(row=4, column=0, padx=5, pady=5, columnspan = 5)
+            tk.Button(mainscreen, text = "Preferences", command=self.preferences).grid(row=5, column=0, padx=5, pady=5, columnspan = 5)
+            tk.Button(mainscreen, text = "Leaderboard", command=self.leaderboard).grid(row=6, column=0, padx=5, pady=5, columnspan = 5)
+            tk.Button(mainscreen, text="Quit", command=self._root.quit).grid(row=7, column=0, padx=5, pady=5, columnspan = 5)
         else:
-            tk.Button(mainscreen, text="Quit", command=self._root.quit).grid(row=3, column=0, padx=5, pady=5, columnspan = 5)
+            tk.Button(mainscreen, text="Quit", command=self._root.quit).grid(row=4, column=0, padx=5, pady=5, columnspan = 5)
 
     def leaderboard(self):
         '''Displays the leaderboard of the top 5 scores along with their player names
@@ -245,17 +249,45 @@ class GUI(UI):
         howtoplaytext.insert(tk.END, "How to Play\n")
         howtoplaytext.insert(tk.END, "1. The game starts with 4 pieces in the middle of the board, 2 black and 2 white\n2. Black always goes first\n3. The goal of the game is to have the most pieces on the board\n4. To place a piece, click on the square you want to place it in\n5. You can only place a piece in a square that will flip at least one of your opponent's pieces\n6. If you cannot place a piece, you must pass\n7. The game ends when there are no more valid moves\n8. The player with the most pieces wins\n")                                  
     
-    def play1(self):
+    def play(self, gamemode, loadno):
         if self._game_win:
             return
-        self._player1 = self.player1entry.get()
-        self._player2 = self.player2entry.get()
+        if loadno != 0:
+            self._game = Othello(Player("Player 1"), Player("Player 2"), 1)
+            self._player1 = self._game.getPlayer1Name()
+            self._player2 = self._game.getPlayer2Name()
+            self._game.loadGame(loadno)
+            self.isloaded = True
+            self.__boards.push(copy.deepcopy(self._game.getBoard()))
+        else:
+            self.isloaded = False
+            self._player1 = self.player1entry.get()
+            #self._player2 = self.player2entry.get()
 
-        self._game = Othello(Player(self._player1), Player(self._player2), 1)
-        self._game.setupGame()
-        self._game.setGamemode(2)
+            if gamemode == 2:
+                self._player2 = self.player2entry.get()
+                self._game = Othello(Player(self._player1), Player(self._player2), 1)
+            else:
+                if self.pref:
+                    self._player1 = self.pref[0]
+                    self._player2 = "Computer"
+                    self._difficulty = self.pref[1]
+                else:
+                    self._player1 = self.player1entry.get()
+                    self._player2 = "Computer"
+                    try:
+                        self._difficulty = int(self.difficultentry.get())
+                    except:
+                        self._difficulty = 1
+                
+                self._game = Othello(Player(self._player1), Computer(self._player2), 1)
+                self._game.setDifficult(self._difficulty)
+            self._game.setupGame()
+            self._game.setGamemode(gamemode)
         self.__boards.push(copy.deepcopy(self._game.getBoard()))
         self._finished = False
+        self.undos = 0
+        self.hint = 0
 
         self._game_win = tk.Toplevel(self._root)
         self._game_win.title("Othello")
@@ -264,11 +296,21 @@ class GUI(UI):
         self.canvassize = 700
         tk.Grid.rowconfigure(self._game_win, 0, weight=1)
         tk.Grid.columnconfigure(self._game_win, 0, weight=1)
-        self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.boardcolourbutton.cget("text"))
+
+        if self.pref:
+            self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.pref[3])
+        elif loadno == 0:
+            self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.boardcolourbutton.cget("text"))
+        else:
+            self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg="dark green")
+
         self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
         self.c.bind("<Button-1>", self.move)
-
-        self.indicator = tk.Label(self._game_win, text="Black's Turn")
+        
+        if self._game.getTurn()%2 == 1:
+            self.indicator = tk.Label(self._game_win, text="Black's Turn")
+        else:
+            self.indicator = tk.Label(self._game_win, text="White's Turn")
         self.indicator.grid(row = 0, column = 2, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
 
         self.t = tk.Text(self._game_win, height=2, width=30)
@@ -279,20 +321,30 @@ class GUI(UI):
 
         self.whitescore = tk.Label(self._game_win, text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
         self.whitescore.grid(row=1, column=2, columnspan=2)
-        
 
         self.savebutton = tk.Button(self._game_win, text="Save", command=self.saveGame)
         self.savebutton.grid(row=2, column=1, columnspan=2)
 
-        self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
-        self.loadbutton.grid(row=2, column=2, columnspan=2)
+        #self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
+        #self.loadbutton.grid(row=2, column=2, columnspan=2)
 
         self.u = tk.Button(self._game_win, text = "Undo", command = self.undo)
         self.u.grid(row=1, column=0, columnspan=5)
+
+        if gamemode == 1 and loadno == 0:
+            if self.hintbutton.cget("text") == "Enabled":
+                self.hintbutton = tk.Button(self._game_win, text="Hint", command=self.givehint)
+                self.hintbutton.grid(row=3, column=1, columnspan=2)
+            elif self.pref:
+                if self.pref[2] == 1:
+                    self.hintbutton = tk.Button(self._game_win, text="Hint", command=self.givehint)
+                    self.hintbutton.grid(row=3, column=1, columnspan=2)
+
         self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
         self.quitbutton.grid(row=2, column=0, columnspan=5)
+
         self.displayBoard(self._game_win)
-    
+
     def move(self, event):
         if self._game.getTurn()%2 == 1:
             colour = 1
@@ -315,18 +367,75 @@ class GUI(UI):
             elif colour == 2:
                 self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
                 self.indicator.config(text="Black's Turn")
-            self._game.pushstack()
-            if len(validmoves) == 0:
+
+            if self._game.getGamemode() == 1:
+                ended = self.checkend()
+                if ended:
+                    self.gameClose()
+                    return
+                self.displayBoard(self._game_win)
+                self._root.update()
+                self._root.update_idletasks()
+
+                #computer's turn
+                if colour == 1:
+                    computercolour = 2
+                else:
+                    computercolour = 1
+                validmoves = self._game.getValidMoves(self._game.getBoard(), computercolour)
+                if len(validmoves) == 0:
+                    self._game.setTurn(2)
+                    self.indicator.config(text="Black's Turn")
+                    self.t.insert(tk.END, "Black: No valid moves\n")
+                    self._root.update()
+                    self._root.update_idletasks()
+                    return
+                while True:
+                    compmove = self._game.cmove()
+                    if compmove:
+                        self._game.playGame(None, compmove[0][1], compmove[0][0], computercolour, compmove[1])
+                        self.t.insert(tk.END, self._player2 + ": " + str(compmove[0][1]) + "," + str(compmove[0][0]) + "\n")
+                        time.sleep(2)
+                    #display the new board
+                    self.displayBoard(self._game_win)
+                    self._root.update()
+                    self._root.update_idletasks()
+
+                    print(self._game.getTurn())
+
+                    #do the necessary updates
+                    self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+                    self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
+                    ended = self.checkend()
+                    if ended:
+                        self.gameClose()
+                        return
+
+                    #checking whether the user can play any moves
+                    if len(self._game.getValidMoves(self._game.getBoard(), colour)) != 0:
+                        print("ho")
+                        self._game.setTurn(2)
+                        break
+                    else:
+                        self.t.insert(tk.END, self._player2 + ": " + "Pass" + "\n")
+                        self._game.setTurn(2)
+            if self._game.getGamemode() == 2:
+                self._game.pushstack()
+                if len(validmoves) == 0:
+                    self._game.setTurn(1)
                 self._game.setTurn(1)
-            self._game.setTurn(1)
-        
+
+            print(self._game.getTurn())
+
+            self._root.update()
+            self._root.update_idletasks()
+            self.displayBoard(self._game_win)
+            self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
+            self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
+            self.checkend()
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
-            pass
-        self.checkend()
-        self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
-        self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-        self.displayBoard(self._game_win)
+            print("Invalid Move")
     
     def displayBoard(self, window):
         ratio = self.canvassize/8
@@ -350,24 +459,23 @@ class GUI(UI):
                         self.c.create_oval(col*ratio, row*ratio, (col+1)*ratio, (row+1)*ratio, fill="white")
 
         #display valid moves
-        if self.validbutton.cget("text") == "Enabled":  
-            if self._game.getTurn()%2 == 1: # black
-                validlocations = self._game.getValidMoves(board, 1)
+        if not self.isloaded:
+            if self.validbutton.cget("text") == "Enabled":  
+                if self._game.getTurn()%2 == 1: # black
+                    validlocations = self._game.getValidMoves(board, 1)
+                else:
+                    validlocations = self._game.getValidMoves(board, 2)
+                for location in validlocations:
+                    self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
             else:
-                validlocations = self._game.getValidMoves(board, 2)
-            for location in validlocations:
-                self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
-        elif self.validbutton.cget("text") == "Disabled":
-            try:
-                if self.pref[4] == 1:
-                    if self._game.getTurn()%2 == 1: # black
-                        validlocations = self._game.getValidMoves(board, 1)
-                    else:
-                        validlocations = self._game.getValidMoves(board, 2)
-                    for location in validlocations:
-                        self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
-            except:
-                pass
+                if self.pref:
+                    if self.pref[4] == 1:
+                        if self._game.getTurn()%2 == 1: # black
+                            validlocations = self._game.getValidMoves(board, 1)
+                        else:
+                            validlocations = self._game.getValidMoves(board, 2)
+                        for location in validlocations:
+                            self.c.create_oval(location[0][1]*ratio, location[0][0]*ratio, (location[0][1]+1)*ratio, (location[0][0]+1)*ratio, fill="grey")
 
     def undo(self):
         #class A skill - stacks
@@ -410,7 +518,7 @@ class GUI(UI):
         self.boardcolourbutton = tk.Button(newwindow, text="dark green", command=self.boardcolour, bg="dark green")
         self.boardcolourbutton.grid(row=3, column=1, columnspan=2)
 
-        nextbutton = tk.Button(newwindow, text="Next", command=self.play1)
+        nextbutton = tk.Button(newwindow, text="Next", command=lambda: self.play(2,0))
         nextbutton.grid(row=4, column=0, columnspan=2)
 
     def boardcolour(self):
@@ -455,7 +563,7 @@ class GUI(UI):
             self.boardcolourbutton = tk.Button(option2, text="dark green", command=self.boardcolour, bg="dark green")
             self.boardcolourbutton.grid(row=4, column=1, columnspan=2)
 
-            nextbutton = tk.Button(option2, text="Next", command=self.play2)
+            nextbutton = tk.Button(option2, text="Next", command=lambda: self.play(1,0))
             nextbutton.grid(row=5, column=0, columnspan=2)
         else:
             preferences = self.datams.getpreferences(self.user)
@@ -566,169 +674,6 @@ class GUI(UI):
         else:
             self.hintbutton.config(text="Disabled", bg="red")
     
-    def play2(self):
-        if self._game_win:
-            return
-        try:
-            self._player1 = self.pref[0]
-            self._player2 = "Computer"
-            self._difficulty = self.pref[1]
-        except:
-            self._player1 = self.player1entry.get()
-            self._player2 = "Computer"
-            try:
-                self._difficulty = int(self.difficultentry.get())
-            except:
-                self._difficulty = 1
-        
-        self._game = Othello(Player(self._player1), Computer(self._player2), 1)
-        self._game.setDifficult(self._difficulty)
-        self._game.setupGame()
-        self._game.setGamemode(1)
-        self.__boards.push(copy.deepcopy(self._game.getBoard()))
-        self._finished = False
-        self.undos = 0
-        self.hint = 0
-
-        self._game_win = tk.Toplevel(self._root)
-        self._game_win.title("Othello")
-        #game_win.geometry("500x500")
-        
-        self.canvassize = 700
-        tk.Grid.rowconfigure(self._game_win, 0, weight=1)
-        tk.Grid.columnconfigure(self._game_win, 0, weight=1)
-        try:
-            self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.pref[3])
-        except:
-            self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.boardcolourbutton.cget("text"))
-        self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
-        self.c.bind("<Button-1>", self.move2)
-
-        self.indicator = tk.Label(self._game_win, text="Player 1 Turn")
-        self.indicator.grid(row = 0, column = 2, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
-
-        self.t = tk.Text(self._game_win, height=2, width=30)
-        self.t.grid(row = 0, column = 1, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
-
-        self.u = tk.Button(self._game_win, text = "Undo", command = self.undo)
-        self.u.grid(row=1, column=0, columnspan=5)
-
-        self.quitbutton = tk.Button(self._game_win, text="Quit", command=self.gameClose)
-        self.quitbutton.grid(row=2, column=0, columnspan=5)
-
-        self.blackscore = tk.Label(self._game_win, text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-        self.blackscore.grid(row=1, column=1, columnspan=2)
-
-        self.whitescore = tk.Label(self._game_win, text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
-        self.whitescore.grid(row=1, column=2, columnspan=2)
-
-        self.savebutton = tk.Button(self._game_win, text="Save", command=self.saveGame)
-        self.savebutton.grid(row=2, column=1, columnspan=2)
-
-        self.loadbutton = tk.Button(self._game_win, text="Load", command=self.loadGame)
-        self.loadbutton.grid(row=2, column=2, columnspan=2)
-
-        if self.hintbutton.cget("text") == "Enabled":
-            self.hintbutton = tk.Button(self._game_win, text="Hint", command=self.givehint)
-            self.hintbutton.grid(row=3, column=1, columnspan=2)
-        elif self.hintbutton.cget("text") == "Disabled":
-            try:
-                if self.pref[2] == 1:
-                    self.hintbutton = tk.Button(self._game_win, text="Hint", command=self.givehint)
-                    self.hintbutton.grid(row=3, column=1, columnspan=2)
-            except:
-                pass
-
-        self.displayBoard(self._game_win)
-    
-    def move2(self, event):
-        if self._game.getTurn()%2 == 1:
-            colour = 1
-        else:
-            colour = 2
-        x,y = event.x, event.y
-        ratio = self.canvassize/8
-        try:
-            x = int(x//ratio)
-            y = int(y//ratio)
-        except Exception as e:
-            print(e)
-        validmoves = self._game.getValidMoves(self._game.getBoard(), colour)
-        valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
-        if valid:
-            self._game.playGame(None, x, y, colour, dir)
-
-            self.t.insert(tk.END, self._player1 + ": " + str(x) + "," + str(y) + "\n")
-            self.indicator.config(text="Computer Turn")
-
-            self.displayBoard(self._game_win)
-            self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
-            self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-            ended = self.checkend()
-            if ended:
-                print("hello")
-                self.gameClose()
-                return
-            self._root.update()
-            self._root.update_idletasks()
-            #computer's turn
-            if colour == 1:
-                computercolour = 2
-            else:
-                computercolour = 1
-            validmoves = self._game.getValidMoves(self._game.getBoard(), computercolour)
-
-            #checking if the computer can play any moves
-            if len(validmoves) == 0:
-                print("hi")
-                self._game.setTurn(1)
-                self.indicator.config(text="Player 1 Turn")
-                self.displayBoard(self._game_win)
-                self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
-                self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-                self.checkend()
-                return
-            
-            #keeping playing a computer's move until the other play has a valid move
-            while True:
-                computermove = self.computermove()
-                if computermove:
-                    self._game.playGame(None, computermove[0][1], computermove[0][0], computercolour, computermove[1])
-                    #self.__boards.push(copy.deepcopy(self._game.getBoard()))
-                    self._game.pushstack()
-                    self.t.insert(tk.END, self._player2 + ": " + str(computermove[0][1]) + "," + str(computermove[0][0]) + "\n")
-                    time.sleep(2)
-
-                #display the new board
-                self.displayBoard(self._game_win)
-                self._root.update()
-                self._root.update_idletasks()
-
-                #do the necessary updates
-                self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
-                self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-                ended = self.checkend()
-                if ended:
-                    self.gameClose()
-                    return
-
-                #checking whether the user can play any moves
-                if len(self._game.getValidMoves(self._game.getBoard(), colour)) != 0:
-                    self._game.setTurn(-2)
-                    break
-                else:
-                    self.t.insert(tk.END, self._player2 + ": " + "Pass" + "\n")
-                    self._game.setTurn(2)
-
-            self.indicator.config(text="Player 1 Turn")
-            self._game.setTurn(2)
-            self.displayBoard(self._game_win)
-            self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
-            self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
-        else:
-            #messagebox.showinfo("Invalid Move", "Invalid Move")
-            print("Invalid Move")
-    
     def checkend(self):
         if self._game.checkgameover(self._game.getBoard()):
             if self._game.getGamemode() == 1:
@@ -822,48 +767,7 @@ class GUI(UI):
         except:
             messagebox.showinfo("Invalid Load Number", "Invalid Load Number")
 
-        self._game.loadGame(loadnumber)
-        
-        self._game.clearStack()
-        self._game.pushstack()
-
-        if self._game.getTurn()%2 == 1:
-            self.indicator.config(text="Black's Turn")
-        else:
-            self.indicator.config(text="White's Turn")
-        self.t.delete("1.0", tk.END)
-        self.displayBoard(self._game_win)
-    
-    def computermove(self):
-        move = self._game.getValidMoves(self._game.getBoard(), 2)
-        #print(self.__game.getDifficulty())
-        if self._game.getDifficulty() == 1:
-            #choose a random move from the list of valid moves
-            if len(move) == 0:
-                return None
-            computermove = random.choice(move)
-        if self._game.getDifficulty() == 2:
-            #choose the move which flips the most pieces
-            same = copy.deepcopy(self._game.getBoard())
-            maxflips = 0
-            if len(move) == 0:
-                return None
-            computermove = random.choice(move)
-            for mov in move:
-                curr_score = self._game.getWhiteScore(same)
-                self._game.playGame(same, mov[0][0], mov[0][1], 2, mov[1])
-                score_diff = self._game.getWhiteScore(same) - curr_score
-                if score_diff > maxflips:
-                    maxflips = score_diff
-                    computermove = mov
-                
-        if self._game.getDifficulty() == 3:
-            computermove, score = self._game.minimax(self._game.getBoard(), 3, True, 2, -100000, 100000)
-            print(f"minimax score: {score}")
-        if self._game.getDifficulty() == 4:
-            computermove, score = self._game.minimax(self._game.getBoard(), 5, True, 2, -100000, 100000)
-            print(f"minimax score: {score}")
-        return computermove
+        self.play(0, loadnumber)
 
     def calcScorew(self):
         score = 0
