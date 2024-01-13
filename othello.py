@@ -10,6 +10,12 @@ class Othello:
         ###################################
         #skill group A - composition
         ###################################
+
+
+        ###################################
+        #skill group A - Complex user defined OOP
+        ###################################
+
         self.__Board = [[0 for i in range(8)] for j in range(8)] 
         ###################################
         # skill group B - multidimensional arrays
@@ -79,7 +85,7 @@ class Othello:
             Method: playGame
             Parameters: board, col, row, colour, direction
             Returns: None
-            Does: places a piece on the board and flips the pieces
+            Does: places a piece on the board and flips the pieces by moving in the direction specified in the parameter so that all enemy pieces in that direction are flipped.
         '''
         if board:
             # minimax only
@@ -117,7 +123,7 @@ class Othello:
             Parameters: board, colour
             Returns: score
 
-            Does: Calculates the score of the board for a certain player
+            Does: Calculates the score of the board for a certain player. Adds friendly pieces and subtracts enemy pieces.
         '''
 
         matrix = [[100, -10, 11, 6, 6, 11, -10, 100],
@@ -258,7 +264,9 @@ class Othello:
             computer dificulty (0 if no computer)
             board
         '''
-            
+
+        ################################### 
+        # Excellent Coding styles - cohesive mdules
         with open(f"game{choice}.txt", "w") as f:
             f.write(f"{self.__Player1.getName()}\n")
             f.write(f"{self.__Player2.getName()}\n")
@@ -314,7 +322,7 @@ class Othello:
             Parameters: board, depth, ismaximising, startingcolour, a, beta
             Returns: move, value
             
-            Does: Calculates the score of the board
+            Does: Calculates the score of the board up to a certain depth using the minimax algorithm. returns the best move and the score corresponding to that
         '''  
   
         isfinished = (len(self.getValidMoves(board, 1)) == 0) and (len(self.getValidMoves(board, 2)) == 0)
@@ -534,6 +542,17 @@ class Othello:
         self.__Boards.clear()
 
     def cmove(self):
+        '''
+            Method: cmove
+            Parameters: None
+            Returns: computermove
+            Does: Gets the computer move
+            
+            Difficulty 1: Random move
+            Difficulty 2: Move which flips the most pieces
+            Difficulty 3: Minimax with depth 3
+            Difficulty 4: Minimax with depth 5
+        '''
         move = self.getValidMoves(self.getBoard(), 2)
         #print(self.__game.getDifficulty())
         if self.getDifficulty() == 1:

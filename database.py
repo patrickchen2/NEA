@@ -1,9 +1,16 @@
 import sqlite3
 class dbms():
     def __init__(self):
-        self.__conn = sqlite3.connect('database.db')
+        ###########################
+        # Good Coding Style - Use of constants
+        ###########################
+        DATABASE = 'database.db'
+        self.__conn = sqlite3.connect(DATABASE)
         self.__cursor = self.__conn.cursor()
     
+    ###########################
+    # skill Group B - Non parameterised SQL
+    ###########################
     def Createtable(self):
         self.__cursor.execute('''CREATE TABLE usernames
                               (username VARCHAR(50) PRIMARY KEY,

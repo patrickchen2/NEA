@@ -194,11 +194,14 @@ class GUI(UI):
         save3.grid(row=4, column=2, columnspan=2)
 
     def savepref1(self):
+        ###########################
+        # Excellent Coding Style - Good Exception Handling
+        ###########################
         try:
             computerdifficulty = int(self.computerdifficultyentry.get())
             hints = int(self.hintsentry.get())
             valids = int(self.validsentry.get())
-        except:
+        except ValueError:
             messagebox.showinfo("Invalid Preferences", "Invalid Preferences")
         self.datams.editpreference(self.user, "computerdiff", computerdifficulty, 1)
         self.datams.editpreference(self.user, "hints", hints, 1)
@@ -210,7 +213,7 @@ class GUI(UI):
             computerdifficulty = int(self.computerdifficultyentry.get())
             hints = int(self.hintsentry.get())
             valids = int(self.validsentry.get())
-        except:
+        except ValueError:
             messagebox.showinfo("Invalid Preferences", "Invalid Preferences")
         self.datams.editpreference(self.user, "computerdiff", computerdifficulty, 2)
         self.datams.editpreference(self.user, "hints", hints, 2)
@@ -222,7 +225,7 @@ class GUI(UI):
             computerdifficulty = int(self.computerdifficultyentry.get())
             hints = int(self.hintsentry.get())
             valids = int(self.validsentry.get())
-        except:
+        except ValueError:
             messagebox.showinfo("Invalid Preferences", "Invalid Preferences")
         self.datams.editpreference(self.user, "computerdiff", computerdifficulty, 3)
         self.datams.editpreference(self.user, "hints", hints, 3)
@@ -259,6 +262,11 @@ class GUI(UI):
             self._game.loadGame(loadno)
             self.isloaded = True
             self.__boards.push(copy.deepcopy(self._game.getBoard()))
+        elif loadno > 3 or loadno < 0:
+            ############################
+            # Excellent Coding Style - Defensive Programming
+            ############################
+            return
         else:
             self.isloaded = False
             self._player1 = self.player1entry.get()
@@ -275,9 +283,17 @@ class GUI(UI):
                 else:
                     self._player1 = self.player1entry.get()
                     self._player2 = "Computer"
+                    ###########################
+                    # Excellent Coding Style - Good Exception Handling
+                    ###########################
+
+                    ############################
+                    # Good Coding Style - Managed Casting of Types
+                    ############################
                     try:
                         self._difficulty = int(self.difficultentry.get())
-                    except:
+                    except ValueError:
+                        #someone has entered an incorrect value so the difficulty is set to 1
                         self._difficulty = 1
                 
                 self._game = Othello(Player(self._player1), Computer(self._player2), 1)
@@ -352,6 +368,9 @@ class GUI(UI):
             colour = 2
         x,y = event.x, event.y
         ratio = self.canvassize/8
+        ###########################
+        # Excellent Coding Style - Good Exception Handling
+        ###########################
         try:
             x = int(x//ratio)
             y = int(y//ratio)
@@ -654,13 +673,13 @@ class GUI(UI):
             self.boardcolourbutton = tk.Button(option2, text="dark green", command=self.boardcolour, bg="dark green")
             self.boardcolourbutton.grid(row=4, column=4, columnspan=2)
 
-            nextbutton = tk.Button(option2, text="Next", command=self.play2)
+            nextbutton = tk.Button(option2, text="Next", command=lambda: self.play(1,0))
             nextbutton.grid(row=5, column=3, columnspan=2)
 
     def choosepref(self, prefno):
         preferences = self.datams.getpreferences(self.user)
         self.pref = preferences[prefno-1]  
-        self.play2()    
+        self.play(1,0)    
 
     def valids(self):
         if self.validbutton.cget("text") == "Disabled":
