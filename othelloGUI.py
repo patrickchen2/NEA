@@ -292,6 +292,9 @@ class GUI(UI):
                     ############################
                     try:
                         self._difficulty = int(self.difficultentry.get())
+                        if self._difficulty == 0 or self._difficulty >= 5:
+                            messagebox.showinfo("Invalid Difficulty", "Invalid Difficulty")
+                            self._difficulty = 1
                     except ValueError:
                         #someone has entered an incorrect value so the difficulty is set to 1
                         self._difficulty = 1
@@ -410,18 +413,19 @@ class GUI(UI):
                     self._root.update_idletasks()
                     return
                 while True:
+
                     compmove = self._game.cmove()
                     if compmove:
                         self._game.playGame(None, compmove[0][1], compmove[0][0], computercolour, compmove[1])
                         self.t.insert(tk.END, self._player2 + ": " + str(compmove[0][1]) + "," + str(compmove[0][0]) + "\n")
-                        time.sleep(2)
+                        #time.sleep(2)
                     #display the new board
                     self.displayBoard(self._game_win)
                     self._root.update()
                     self._root.update_idletasks()
 
+                    self._game.setTurn(1)
                     print(self._game.getTurn())
-
                     #do the necessary updates
                     self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
                     self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
@@ -432,19 +436,18 @@ class GUI(UI):
 
                     #checking whether the user can play any moves
                     if len(self._game.getValidMoves(self._game.getBoard(), colour)) != 0:
-                        print("ho")
-                        self._game.setTurn(2)
+                        self._game.setTurn(1)
                         break
                     else:
                         self.t.insert(tk.END, self._player2 + ": " + "Pass" + "\n")
                         self._game.setTurn(2)
+
+
             if self._game.getGamemode() == 2:
                 self._game.pushstack()
                 if len(validmoves) == 0:
                     self._game.setTurn(1)
                 self._game.setTurn(1)
-
-            print(self._game.getTurn())
 
             self._root.update()
             self._root.update_idletasks()
@@ -452,9 +455,14 @@ class GUI(UI):
             self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
             self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
             self.checkend()
+            if self._game.getTurn() %2 == 1:
+                self.indicator.config(text="Black's Turn")
+            else:
+                self.indicator.config(text="White's Turn")
         else:
             #messagebox.showinfo("Invalid Move", "Invalid Move")
             print("Invalid Move")
+        
     
     def displayBoard(self, window):
         ratio = self.canvassize/8
@@ -719,7 +727,8 @@ class GUI(UI):
                     elif self._game.getBlackScore(self._game.getBoard()) < self._game.getWhiteScore(self._game.getBoard()):
                         stats = self.datams.getstatistics(self.user)
                         newscore = stats[0][3] + self.calcScorel()
-                        self.datams.editstatistics(self.user, "losses", stats[0][2]+1)
+                        print(newscore)
+                        self.datams.editstatistics(self.user, "loss", stats[0][2]+1)
                         self.datams.editstatistics(self.user, "score", newscore)
                         messagebox.showinfo("Game Over", "Computer Wins")
                     else:
@@ -816,9 +825,7 @@ class GUI(UI):
         score = 0
         for row in range(8):
             for col in range(8):
-                if self._game.getBoard()[row][col] == 1:
-                    score -= 1
-                elif self._game.getBoard()[row][col] == 2:
+                if self._game.getBoard()[row][col] == 2:
                     score += 1
         #factor in the turn
         score -= self._game.getTurn()
@@ -831,8 +838,8 @@ class GUI(UI):
 
         #factor in the number of hints
         score += self.hint
-
-        if score < 0:
+        print(score)
+        if score > 0:
             score = 0
         return score
     

@@ -6,6 +6,9 @@ import copy
 from stack import Stack
 
 class Othello:
+    WHITE = 2
+    BLACK = 1
+
     def __init__(self, player1, player2, turn):
         ###################################
         #skill group A - composition
@@ -36,10 +39,10 @@ class Othello:
             Does: Sets up the game by placing the initial pieces
         '''
         self.__Board = [[0 for i in range(8)] for j in range(8)]
-        self.__Board[3][3] = 1
-        self.__Board[4][4] = 1
-        self.__Board[3][4] = 2
-        self.__Board[4][3] = 2
+        self.__Board[3][3] = Othello.BLACK
+        self.__Board[4][4] = Othello.BLACK
+        self.__Board[3][4] = Othello.WHITE
+        self.__Board[4][3] = Othello.WHITE
 
         if self.__Gamemode == 1:
             self.__Player2 = Computer("Computer")
@@ -60,7 +63,7 @@ class Othello:
         count = 0
         for row in range(8):
             for col in range(8):
-                if board[row][col] == 2:
+                if board[row][col] == Othello.WHITE:
                     count += 1
 
         return count
@@ -75,7 +78,7 @@ class Othello:
         count = 0
         for row in range(8):
             for col in range(8):
-                if board[row][col] == 1:
+                if board[row][col] == Othello.BLACK:
                     count += 1
         
         return count
@@ -152,7 +155,7 @@ class Othello:
             Returns: True or False
             Does: Checks if there are any empty spaces left on a board
         '''
-        if len(self.getValidMoves(board, 1)) == 0 and len(self.getValidMoves(board, 2)) == 0:
+        if len(self.getValidMoves(board, Othello.BLACK)) == 0 and len(self.getValidMoves(board, Othello.WHITE)) == 0:
             return True
         return False
     
@@ -167,11 +170,11 @@ class Othello:
         black = 0
         for row in range(8):
             for col in range(8):
-                if self.__Board[row][col] == 1:
-                    white += 1
-                elif self.__Board[row][col] == 2:
+                if self.__Board[row][col] == Othello.BLACK:
                     black += 1
-        return white, black
+                elif self.__Board[row][col] == Othello.WHITE:
+                    white += 1
+        return black, white
 
 
     def isvalidmove(self, board, col, row, colour):

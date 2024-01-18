@@ -73,11 +73,11 @@ class terminal(UI):
                 self.__game.loadGame(c)
             elif choice == "4":
                 return None
-        white, black = self.__game.calculateWinner()
-        print(f"Black: {white}\nWhite: {black}")
-        if white > black:
+        black, white = self.__game.calculateWinner()
+        print(f"Black: {black}\nWhite: {white}")
+        if black > white:
             print(f"{self.__game.getPlayer1Name()} wins!")
-        elif black > white:
+        elif white > black:
             print(f"{self.__game.getPlayer2Name()} wins!")
         else:
             print("Tie!")
