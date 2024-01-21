@@ -418,14 +418,13 @@ class GUI(UI):
                     if compmove:
                         self._game.playGame(None, compmove[0][1], compmove[0][0], computercolour, compmove[1])
                         self.t.insert(tk.END, self._player2 + ": " + str(compmove[0][1]) + "," + str(compmove[0][0]) + "\n")
-                        #time.sleep(2)
+                        time.sleep(2)
                     #display the new board
                     self.displayBoard(self._game_win)
                     self._root.update()
                     self._root.update_idletasks()
 
                     self._game.setTurn(1)
-                    print(self._game.getTurn())
                     #do the necessary updates
                     self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
                     self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
@@ -441,6 +440,7 @@ class GUI(UI):
                     else:
                         self.t.insert(tk.END, self._player2 + ": " + "Pass" + "\n")
                         self._game.setTurn(2)
+                self._game.pushstack()
 
 
             if self._game.getGamemode() == 2:
@@ -476,6 +476,7 @@ class GUI(UI):
         self.c.create_line(self.canvassize, 0, self.canvassize, self.canvassize)
         self.c.create_line(0, 0, self.canvassize, 0)
 
+        #print all the pieces of the board onto the canvas
         board = self._game.getBoard()
         for row in range(8):
             for col in range(8):
@@ -514,7 +515,7 @@ class GUI(UI):
             self.indicator.config(text="White's Turn")
         
         if self._game.getGamemode() == 1:
-            self._game.setTurn(-1)
+            #self._game.setTurn(-1)
             self.undos += 1
         self.c.delete("all")
         self.t.insert(tk.END, "Undo\n")
