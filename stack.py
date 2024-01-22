@@ -1,6 +1,7 @@
 class Stack():
     ###############################
     # Skill group A: stacks and stack operations
+    ###############################
     def __init__(self):
         self.__stack = []
 

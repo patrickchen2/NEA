@@ -19,6 +19,8 @@ class terminal(UI):
         '''
         self.__game.setGamemode(gamemode)
         self.__game.setupGame()
+
+
         while not self.__game.checkgameover(self.__game.getBoard()):
             self.__game.displayBoard(self.__game.getBoard())
             choice = input("""
@@ -31,31 +33,40 @@ class terminal(UI):
                 if self.__game.getTurn() % 2 == 1:
                     print(f"Black ({self.__game.getPlayer1Name()}) turn")
                     valid = False
+
                     while not valid:
                         column = int(input("enter a column between 0 and 7: "))
                         row = int(input("enter a row between 0 and 7: "))
                         valid, dir = self.__game.isvalidmove(self.__game.getBoard(), column, row, 1)
                         if not valid:
                             print("Invalid move")
+
                     self.__game.playGame(None, column, row, 1, dir)
+                # white colour in 2 player 
                 elif self.__game.getGamemode() == 2 and self.__game.getTurn() % 2 == 0:
                     print(f"White ({self.__game.getPlayer2Name()}) turn")
                     valid = False
+
                     while not valid:
                         column = int(input("enter a column between 0 and 7: "))
                         row = int(input("enter a row between 0 and 7: "))
                         valid, dir = self.__game.isvalidmove(self.__game.getBoard(), column, row, 2)
                         if not valid:
                             print("Invalid move")
+
                     self.__game.playGame(None, column, row, 2, dir)
+                # white computer in 1 player
                 elif self.__game.getGamemode() == 1 and self.__game.getTurn() % 2 == 0:
                     print("Computer turn")
                     move = self.__game.cmove(self.__game.getBoard(), 2)
                     self.__game.playGame(None, move[0][1], move[0][0], 2, move[1])
+
                     self.__game.setTurn(1)
                 self.__game.setTurn(1)
             elif choice == "2":
+                # save game
                 validchoice = False
+
                 while not validchoice:
                     c = int(input("choose which file you want to save to (1, 2, 3, 4 to cancel): "))
                     if c in [1,2,3]:
@@ -64,9 +75,12 @@ class terminal(UI):
                         print("Cancelled")
                     else:
                         print("Invalid choice, try again")
+
                 self.__game.saveGame(c)
             elif choice == "3":
+                # load game
                 validchoice = False
+
                 while not validchoice:
                     c = int(input("choose which file you want to load from(1, 2, 3, 4 to cancel): "))
                     if c in [1,2,3]:
@@ -75,11 +89,16 @@ class terminal(UI):
                         print("Cancelled")
                     else:
                         print("Invalid choice, try again")
+
                 self.__game.loadGame(c)
             elif choice == "4":
                 return None
+            
+
         black, white = self.__game.calculateWinner()
         print(f"Black: {black}\nWhite: {white}")
+
+        
         if black > white:
             print(f"{self.__game.getPlayer1Name()} wins!")
         elif white > black:

@@ -93,7 +93,12 @@ class GUI(UI):
                 tk.Label(leaderboard, text=f"{i+1}. {stats[i][0]}: {stats[i][3]}").grid(row=i, column=0)
 
     def login(self):
-
+        '''
+        Displays the login screen
+        Username:
+        Password:
+        Login (button)
+        '''
         login = tk.Toplevel(self._root)
         user = tk.Label(login, text="Username: ")
         user.grid(row=0, column=0)
@@ -109,6 +114,9 @@ class GUI(UI):
         loginbutton.grid(row=2, column=0, columnspan=2)
 
     def login2(self):
+        '''
+        checks if a username and password are valid by matching to the database
+        '''
         username = self.userentry.get()
         password = self.passwordentry.get()
         self.datams = dbms()
@@ -121,6 +129,12 @@ class GUI(UI):
             self.mainscreen()
 
     def register(self):
+        '''
+        displays the register screen
+        Username:
+        Password:
+        Register (button)
+        '''
         register = tk.Toplevel(self._root)
         user = tk.Label(register, text="Username: ")
         user.grid(row=0, column=0)
@@ -136,6 +150,9 @@ class GUI(UI):
         registerbutton.grid(row=2, column=0, columnspan=2)
 
     def register2(self):
+        '''
+        checks if a username is taken and if not, registers the user, by adding the relevant records into the tables
+        '''
         username = self.userentry.get()
         password = self.passwordentry.get()
         if self.datams.checkifUserExists(username):
@@ -148,10 +165,19 @@ class GUI(UI):
             self.datams.Insert("preferences", f"('{username}', 1, 0, 'dark green', 0, 3)")
 
     def hash(self, password):
+        '''
+        hashes the password using sha256
+        '''
         hashed_password = sha256(password.encode()).hexdigest()
         return hashed_password
     
     def profile(self):
+        '''
+        displays the profile screen
+        wins:
+        losses:
+        score:
+        '''
         pro = tk.Toplevel(self._root)
         stats = self.datams.getstatistics(self.user)
         wins = tk.Label(pro, text="Wins: " + str(stats[0][1]))
@@ -162,6 +188,19 @@ class GUI(UI):
         score.grid(row=2, column=0)
 
     def preferences(self):
+        '''
+        displays the preferences screen
+        Computer Difficulty:
+        Hints:
+        Board Colour:
+        Valid Moves:
+        Save 1 (button)
+        Save 2 (button)
+        Save 3 (button)
+
+        is shown later on to choose between 3 or a new one
+        '''
+
         pref = tk.Toplevel(self._root)
 
         computerdifficulty = tk.Label(pref, text="Computer Difficulty: ")
@@ -233,6 +272,9 @@ class GUI(UI):
         self.datams.editpreference(self.user, "validmoves", valids, 3)
         
     def boardcolourp(self):
+        '''
+        toggles the board colour button, to change the colour of the board in the game
+        '''
         colours = ["dark green", "blue", "red", "yellow", "orange", "purple", "pink", "brown"]
         index = colours.index(self.boardcolourpref.cget("text"))
         if index == len(colours)-1:
@@ -244,6 +286,9 @@ class GUI(UI):
         self.boardcolourpref.config(bg=colours[index])
     
     def help(self):
+        '''
+        displays the help screen and explains how to play the game
+        '''
         howtoplay = tk.Toplevel(self._root)
         howtoplay.title("How to Play")
         howtoplay.geometry("500x300")
@@ -277,6 +322,7 @@ class GUI(UI):
                 self._game = Othello(Player(self._player1), Player(self._player2), 1)
             else:
                 if self.pref:
+                    # checks whether the user has chosen to use one of their preset preferences
                     self._player1 = self.pref[0]
                     self._player2 = "Computer"
                     self._difficulty = self.pref[1]
@@ -301,10 +347,15 @@ class GUI(UI):
                 
                 self._game = Othello(Player(self._player1), Computer(self._player2), 1)
                 self._game.setDifficult(self._difficulty)
+
             self._game.setupGame()
             self._game.setGamemode(gamemode)
+
+        
         self.__boards.push(copy.deepcopy(self._game.getBoard()))
         self._finished = False
+
+        # sets the start numbers for the end score
         self.undos = 0
         self.hint = 0
 
@@ -316,6 +367,7 @@ class GUI(UI):
         tk.Grid.rowconfigure(self._game_win, 0, weight=1)
         tk.Grid.columnconfigure(self._game_win, 0, weight=1)
 
+        #establish the board and the colour depending on their choice
         if self.pref:
             self.c = tk.Canvas(self._game_win, width=self.canvassize, height=self.canvassize, bg=self.pref[3])
         elif loadno == 0:
@@ -326,12 +378,14 @@ class GUI(UI):
         self.c.grid(row = 0, column = 0, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
         self.c.bind("<Button-1>", self.move)
         
+        # display who's turn it is
         if self._game.getTurn()%2 == 1:
             self.indicator = tk.Label(self._game_win, text="Black's Turn")
         else:
             self.indicator = tk.Label(self._game_win, text="White's Turn")
         self.indicator.grid(row = 0, column = 2, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
 
+        # log of all the moves
         self.t = tk.Text(self._game_win, height=2, width=30)
         self.t.grid(row = 0, column = 1, padx= 5, pady=5, sticky=tk.N+tk.S+tk.E+tk.W)
 
@@ -350,6 +404,7 @@ class GUI(UI):
         self.u = tk.Button(self._game_win, text = "Undo", command = self.undo)
         self.u.grid(row=1, column=0, columnspan=5)
 
+        # display the hint button
         if gamemode == 1 and loadno == 0:
             if self.hintbutton.cget("text") == "Enabled":
                 self.hintbutton = tk.Button(self._game_win, text="Hint", command=self.givehint)
@@ -369,6 +424,7 @@ class GUI(UI):
             colour = 1
         else:
             colour = 2
+
         x,y = event.x, event.y
         ratio = self.canvassize/8
         ###########################
@@ -379,9 +435,13 @@ class GUI(UI):
             y = int(y//ratio)
         except Exception as e:
             print(e)
+
+        # to check if the location is valid
         validmoves = self._game.getValidMoves(self._game.getBoard(), colour)
         valid, dir = self._game.isvalidmove(self._game.getBoard(), x, y, colour)
+
         if valid:
+            # play the move
             self._game.playGame(None, x, y, colour, dir)
             if colour == 1:
                 self.t.insert(tk.END, self._player1 + ": " + str(x) + "," + str(y) + "\n")
@@ -390,12 +450,15 @@ class GUI(UI):
                 self.t.insert(tk.END, self._player2 + ": " + str(x) + "," + str(y) + "\n")
                 self.indicator.config(text="Black's Turn")
 
+            # if it is a single player game, process the computer move
             if self._game.getGamemode() == 1:
                 ended = self.checkend()
                 if ended:
                     self.gameClose()
                     return
                 self.displayBoard(self._game_win)
+
+                # update the canvas and window
                 self._root.update()
                 self._root.update_idletasks()
 
@@ -405,6 +468,7 @@ class GUI(UI):
                 else:
                     computercolour = 1
                 validmoves = self._game.getValidMoves(self._game.getBoard(), computercolour)
+                # if the computer can't play any moves skip their turn
                 if len(validmoves) == 0:
                     self._game.setTurn(2)
                     self.indicator.config(text="Black's Turn")
@@ -413,7 +477,7 @@ class GUI(UI):
                     self._root.update_idletasks()
                     return
                 while True:
-
+                    
                     compmove = self._game.cmove()
                     if compmove:
                         self._game.playGame(None, compmove[0][1], compmove[0][0], computercolour, compmove[1])
@@ -451,6 +515,7 @@ class GUI(UI):
 
             self._root.update()
             self._root.update_idletasks()
+
             self.displayBoard(self._game_win)
             self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
             self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
@@ -522,6 +587,14 @@ class GUI(UI):
         self.displayBoard(self._game_win)
 
     def options1(self):
+        '''
+        Displays the options for multiplayer
+        Player 1:
+        Player 2:
+        Valid Moves:
+        Board Colour:
+        Next (button)
+        '''
         newwindow = tk.Toplevel(self._root)
         newwindow.title("Options")
         newwindow.geometry("300x300")
@@ -550,6 +623,9 @@ class GUI(UI):
         nextbutton.grid(row=4, column=0, columnspan=2)
 
     def boardcolour(self):
+        '''
+        toggles the board colour button, to change the colour of the board in the game
+        '''
         colours = ["dark green", "blue", "red", "yellow", "orange", "purple", "pink", "brown"]
         index = colours.index(self.boardcolourbutton.cget("text"))
         if index == len(colours)-1:
@@ -561,6 +637,15 @@ class GUI(UI):
         self.boardcolourbutton.config(bg=colours[index])
         
     def options2(self):
+        '''
+        Displays the options for single player
+        Player 1:
+        Difficulty:
+        Hints:
+        Board Colour:
+        Valid Moves:
+        Next (button)
+        '''
         option2 = tk.Toplevel(self._root)
         option2.title("Options")
         if not self.loggedin:
@@ -686,23 +771,35 @@ class GUI(UI):
             nextbutton.grid(row=5, column=3, columnspan=2)
 
     def choosepref(self, prefno):
+        '''
+        chooses the preference that the user has chosen
+        '''
         preferences = self.datams.getpreferences(self.user)
         self.pref = preferences[prefno-1]  
         self.play(1,0)    
 
     def valids(self):
+        '''
+        toggles the valid moves button, to display the valid moves in the game
+        '''
         if self.validbutton.cget("text") == "Disabled":
             self.validbutton.config(text="Enabled", bg="green")
         else:
             self.validbutton.config(text="Disabled", bg="red")
 
     def hints(self):
+        '''
+        toggles the hint button, to display the hint in the game
+        '''
         if self.hintbutton.cget("text") == "Disabled":
             self.hintbutton.config(text="Enabled", bg="green")
         else:
             self.hintbutton.config(text="Disabled", bg="red")
     
     def checkend(self):
+        '''
+        checks whether the game is over, and updates allthe databases accordingly
+        '''
         if self._game.checkgameover(self._game.getBoard()):
             if self._game.getGamemode() == 1:
                 if not self.loggedin:
@@ -758,6 +855,9 @@ class GUI(UI):
         self._root.update_idletasks()
 
     def saveGame(self):
+        '''
+        saves the game to a file
+        '''
         savewindow = tk.Toplevel(self._game_win)
         savewindow.title("Save Game")
         savewindow.geometry("300x300")
@@ -771,6 +871,9 @@ class GUI(UI):
         savebutton.grid(row=1, column=0, columnspan=2)
         
     def save(self):
+        '''
+        saves the game to a file
+        '''
         try:
             savenumber = int(self.savenumberentry.get())
         except:
@@ -778,6 +881,9 @@ class GUI(UI):
         self._game.saveGame(savenumber)
 
     def loadGame(self):
+        '''
+        loads the game from a file
+        '''
         loadwindow = tk.Toplevel(self._game_win)
         loadwindow.title("Load Game")
         loadwindow.geometry("300x300")
@@ -791,6 +897,9 @@ class GUI(UI):
         loadbutton.grid(row=1, column=0, columnspan=2)
     
     def load(self):
+        '''
+        loads the game from a file
+        '''
         try:
             loadnumber = int(self.loadnumberentry.get())
         except:
@@ -799,6 +908,9 @@ class GUI(UI):
         self.play(0, loadnumber)
 
     def calcScorew(self):
+        '''
+        if the user wins, a score is calculated
+        score = pieces(friendly) - pieces(enemy) + turn + 2(difficulty) - undos - hints'''
         score = 0
         for row in range(8):
             for col in range(8):
@@ -823,6 +935,10 @@ class GUI(UI):
         return score
 
     def calcScorel(self):
+        '''
+        if the user loses, a score is calculated
+        score = pieces(enemy) - turn - 2(difficulty) + undos + hints
+        '''
         score = 0
         for row in range(8):
             for col in range(8):
