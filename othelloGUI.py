@@ -452,6 +452,9 @@ class GUI(UI):
 
             # if it is a single player game, process the computer move
             if self._game.getGamemode() == 1:
+                
+                self._game.setTurn(1)
+
                 ended = self.checkend()
                 if ended:
                     self.gameClose()
@@ -477,18 +480,35 @@ class GUI(UI):
                     self._root.update_idletasks()
                     return
                 while True:
-                    
+                    #unbind all the buttons and canvas
+                    self.c.unbind("<Button-1>")
+                    self.u.config(state=tk.DISABLED)
+                    self.savebutton.config(state=tk.DISABLED)
+                    self.quitbutton.config(state=tk.DISABLED)
+                    self.hintbutton.config(state=tk.DISABLED)
+                    self._root.update()
+                    self._root.update_idletasks()
+
                     compmove = self._game.cmove()
                     if compmove:
                         self._game.playGame(None, compmove[0][1], compmove[0][0], computercolour, compmove[1])
                         self.t.insert(tk.END, self._player2 + ": " + str(compmove[0][1]) + "," + str(compmove[0][0]) + "\n")
                         time.sleep(2)
-                    #display the new board
-                    self.displayBoard(self._game_win)
+
+                    #rebind all the buttons and canvas
+                    self.c.bind("<Button-1>", self.move)
+                    self.u.config(state=tk.NORMAL)
+                    self.savebutton.config(state=tk.NORMAL)
+                    self.quitbutton.config(state=tk.NORMAL)
+                    self.hintbutton.config(state=tk.NORMAL)
                     self._root.update()
                     self._root.update_idletasks()
 
-                    self._game.setTurn(1)
+                    #display the new board                
+                    self.displayBoard(self._game_win)
+                    self._root.update()
+                    self._root.update_idletasks()
+           
                     #do the necessary updates
                     self.whitescore.config(text="White: " + str(self._game.getWhiteScore(self._game.getBoard())))
                     self.blackscore.config(text="Black: " + str(self._game.getBlackScore(self._game.getBoard())))
@@ -844,15 +864,35 @@ class GUI(UI):
 
     def givehint(self):
         #play the game from the player's perspective using minimax
-        hintmove, score = self._game.minimax(self._game.getBoard(), 5, True, 1, -100000, 100000)
-        
-        #display the hint
-        ratio = self.canvassize/8
-        self.c.create_oval(hintmove[0][1]*ratio, hintmove[0][0]*ratio, (hintmove[0][1]+1)*ratio, (hintmove[0][0]+1)*ratio, fill="yellow")
-        self.hint += 1
-        #force the update
-        self._root.update()
-        self._root.update_idletasks()
+        if self._game.getTurn() % 2 == 1:
+
+            #unbind all the buttons and canvas
+            self.c.unbind("<Button-1>")
+            self.u.config(state=tk.DISABLED)
+            self.savebutton.config(state=tk.DISABLED)
+            self.quitbutton.config(state=tk.DISABLED)
+            self.hintbutton.config(state=tk.DISABLED)
+            self._root.update()
+            self._root.update_idletasks()
+
+            hintmove, score = self._game.minimax(self._game.getBoard(), 5, True, 1, -100000, 100000)
+            
+            #rebind all the buttons and canvas
+            self.c.bind("<Button-1>", self.move)
+            self.u.config(state=tk.NORMAL)
+            self.savebutton.config(state=tk.NORMAL)
+            self.quitbutton.config(state=tk.NORMAL)
+            self.hintbutton.config(state=tk.NORMAL)
+            self._root.update()
+            self._root.update_idletasks()
+            
+            #display the hint
+            ratio = self.canvassize/8
+            self.c.create_oval(hintmove[0][1]*ratio, hintmove[0][0]*ratio, (hintmove[0][1]+1)*ratio, (hintmove[0][0]+1)*ratio, fill="yellow")
+            self.hint += 1
+            #force the update
+            self._root.update()
+            self._root.update_idletasks()
 
     def saveGame(self):
         '''

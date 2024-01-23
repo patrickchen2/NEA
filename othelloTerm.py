@@ -85,7 +85,7 @@ class terminal(UI):
                     c = int(input("choose which file you want to load from(1, 2, 3, 4 to cancel): "))
                     if c in [1,2,3]:
                         validchoice = True
-                    elif choice == 4:
+                    elif c == 4:
                         print("Cancelled")
                     else:
                         print("Invalid choice, try again")
@@ -98,7 +98,7 @@ class terminal(UI):
         black, white = self.__game.calculateWinner()
         print(f"Black: {black}\nWhite: {white}")
 
-        
+
         if black > white:
             print(f"{self.__game.getPlayer1Name()} wins!")
         elif white > black:
@@ -113,12 +113,10 @@ class terminal(UI):
             Returns: None
             Does: Starts the game
         '''
-        x = input("1. 1 Player Game\n2. 2 Player Game\n3. Load Game\n4. Quit\n")
+        x = input("1. 1 Player Game\n2. 2 Player Game\n3. Quit\n")
         if x == "2":
             self.game(2)
         elif x == "1":
             self.game(1)
         elif x == "3":
-            self.__game.loadGame()
-        elif x == "4":
             return None
