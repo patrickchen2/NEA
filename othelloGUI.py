@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from othello import Othello
 from player import Player
 from computer import Computer
-from stack import Stack
 from database import dbms
 from hashlib import sha256
 import tkinter.messagebox as messagebox
@@ -29,7 +28,6 @@ class GUI(UI):
         super().__init__()
         self.help_win = None
         self._game_win = None
-        self.__boards = Stack()
         root = tk.Tk()
         root.title("Othello")
         root.geometry("300x300")
@@ -306,7 +304,7 @@ class GUI(UI):
             self._player2 = self._game.getPlayer2Name()
             self._game.loadGame(loadno)
             self.isloaded = True
-            self.__boards.push(copy.deepcopy(self._game.getBoard()))
+            self._game.pushstack()
         elif loadno > 3 or loadno < 0:
             ############################
             # Excellent Coding Style - Defensive Programming
@@ -352,7 +350,7 @@ class GUI(UI):
             self._game.setGamemode(gamemode)
 
         
-        self.__boards.push(copy.deepcopy(self._game.getBoard()))
+        self._game.pushstack()
         self._finished = False
 
         # sets the start numbers for the end score
@@ -473,7 +471,7 @@ class GUI(UI):
                 validmoves = self._game.getValidMoves(self._game.getBoard(), computercolour)
                 # if the computer can't play any moves skip their turn
                 if len(validmoves) == 0:
-                    self._game.setTurn(2)
+                    self._game.setTurn(1)
                     self.indicator.config(text="Black's Turn")
                     self.t.insert(tk.END, "Black: No valid moves\n")
                     self._root.update()
@@ -485,7 +483,10 @@ class GUI(UI):
                     self.u.config(state=tk.DISABLED)
                     self.savebutton.config(state=tk.DISABLED)
                     self.quitbutton.config(state=tk.DISABLED)
-                    self.hintbutton.config(state=tk.DISABLED)
+                    try:
+                        self.hintbutton.config(state=tk.DISABLED)
+                    except:
+                        pass
                     self._root.update()
                     self._root.update_idletasks()
 
@@ -500,7 +501,10 @@ class GUI(UI):
                     self.u.config(state=tk.NORMAL)
                     self.savebutton.config(state=tk.NORMAL)
                     self.quitbutton.config(state=tk.NORMAL)
-                    self.hintbutton.config(state=tk.NORMAL)
+                    try:
+                        self.hintbutton.config(state=tk.NORMAL)
+                    except:
+                        pass
                     self._root.update()
                     self._root.update_idletasks()
 
@@ -861,6 +865,8 @@ class GUI(UI):
                 else:
                     messagebox.showinfo("Game Over", "Tie")
             return True
+        
+        return False
 
     def givehint(self):
         #play the game from the player's perspective using minimax
@@ -885,7 +891,7 @@ class GUI(UI):
             self.hintbutton.config(state=tk.NORMAL)
             self._root.update()
             self._root.update_idletasks()
-            
+
             #display the hint
             ratio = self.canvassize/8
             self.c.create_oval(hintmove[0][1]*ratio, hintmove[0][0]*ratio, (hintmove[0][1]+1)*ratio, (hintmove[0][0]+1)*ratio, fill="yellow")
