@@ -983,24 +983,24 @@ class GUI(UI):
     def calcScorel(self):
         '''
         if the user loses, a score is calculated
-        score = pieces(enemy) - turn - 2(difficulty) + undos + hints
+        score = - pieces(enemy) - turn + 2(difficulty) + undos + hints
         '''
         score = 0
         for row in range(8):
             for col in range(8):
                 if self._game.getBoard()[row][col] == 2:
-                    score += 1
+                    score -= 1
         #factor in the turn
         score -= self._game.getTurn()
 
         #factor in the difficulty
-        score -= (self._game.getDifficulty()*2)
+        score += (self._game.getDifficulty()*2)
 
         #factor in the number of undos
-        score += self.undos
+        score -= self.undos
 
         #factor in the number of hints
-        score += self.hint
+        score -= self.hint
         print(score)
         if score > 0:
             score = 0
