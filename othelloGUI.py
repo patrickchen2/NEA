@@ -530,6 +530,10 @@ class GUI(UI):
                         self._game.setTurn(2)
                 self._game.pushstack()
 
+            if colour == 1:
+                validmoves = self._game.getValidMoves(self._game.getBoard(), 2)
+            else:
+                validmoves = self._game.getValidMoves(self._game.getBoard(), 1)
 
             if self._game.getGamemode() == 2:
                 self._game.pushstack()

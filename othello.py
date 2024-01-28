@@ -571,12 +571,11 @@ class Othello:
                 return None
             computermove = random.choice(move)
             for mov in move:
-                curr_score = self.getWhiteScore(same)
-                self.playGame(same, mov[0][0], mov[0][1], 2, mov[1])
-                score_diff = self.getWhiteScore(same) - curr_score
-                if score_diff > maxflips:
-                    maxflips = score_diff
+                self.playGame(same, mov[0][1], mov[0][0], 2, mov[1])
+                if self.getWhiteScore(same) - self.getWhiteScore(self.getBoard()) > maxflips:
+                    maxflips = self.getWhiteScore(same) - self.getWhiteScore(self.getBoard())
                     computermove = mov
+                same = copy.deepcopy(self.getBoard())
                 
         if self.getDifficulty() == 3:
             computermove, score = self.minimax(self.getBoard(), 3, True, 2, -100000, 100000)

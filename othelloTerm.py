@@ -32,6 +32,11 @@ class terminal(UI):
             if choice == "1":
                 if self.__game.getTurn() % 2 == 1:
                     print(f"Black ({self.__game.getPlayer1Name()}) turn")
+                    # no valid moves
+                    if len(self.__game.getValidMoves(self.__game.getBoard(), 1)) == 0:
+                        print(f"{self.__game.getPlayer1Name()} has no valid moves")
+                        self.__game.setTurn(1)
+                        continue
                     valid = False
 
                     while not valid:
@@ -45,6 +50,11 @@ class terminal(UI):
                 # white colour in 2 player 
                 elif self.__game.getGamemode() == 2 and self.__game.getTurn() % 2 == 0:
                     print(f"White ({self.__game.getPlayer2Name()}) turn")
+
+                    if len(self.__game.getValidMoves(self.__game.getBoard(), 2)) == 0:
+                        print(f"{self.__game.getPlayer2Name()} has no valid moves")
+                        self.__game.setTurn(1)
+                        continue
                     valid = False
 
                     while not valid:
@@ -57,9 +67,21 @@ class terminal(UI):
                     self.__game.playGame(None, column, row, 2, dir)
                 # white computer in 1 player
                 elif self.__game.getGamemode() == 1 and self.__game.getTurn() % 2 == 0:
-                    print("Computer turn")
-                    move = self.__game.cmove()
-                    self.__game.playGame(None, move[0][1], move[0][0], 2, move[1])
+                    while True:
+                        print("Computer turn")
+                        if len(self.__game.getValidMoves(self.__game.getBoard(), 2)) == 0:
+                            print("Computer has no valid moves")
+                            self.__game.setTurn(1)
+                            continue
+                        move = self.__game.cmove()
+                        self.__game.playGame(None, move[0][1], move[0][0], 2, move[1])
+                        
+                        if len(self.__game.getValidMoves(self.__game.getBoard(), 1)) != 0:
+                            break
+                        else:
+                            print("You have no valid moves")
+                            self.__game.setTurn(1)
+    
 
                     #self.__game.setTurn(1)
                 self.__game.setTurn(1)
