@@ -58,10 +58,10 @@ class terminal(UI):
                 # white computer in 1 player
                 elif self.__game.getGamemode() == 1 and self.__game.getTurn() % 2 == 0:
                     print("Computer turn")
-                    move = self.__game.cmove(self.__game.getBoard(), 2)
+                    move = self.__game.cmove()
                     self.__game.playGame(None, move[0][1], move[0][0], 2, move[1])
 
-                    self.__game.setTurn(1)
+                    #self.__game.setTurn(1)
                 self.__game.setTurn(1)
             elif choice == "2":
                 # save game
